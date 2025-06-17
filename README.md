@@ -1,5 +1,10 @@
 # 🎯 JsonCraft
 
+[![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
+[![pub package](https://img.shields.io/pub/v/json_craft.svg)](https://pub.dev/packages/json_craft)
+![GitHub stars](https://img.shields.io/github/stars/RafaelBarbosatec/json_craft?style=flat)
+[![pub points](https://img.shields.io/pub/points/json_craft?logo=dart)](https://pub.dev/packages/json_craft/score)
+
 Um sistema poderoso e flexível para geração dinâmica de JSON usando templates com interpolação de variáveis, condicionais e formatadores.
 
 ## ✨ Características
