@@ -1,7 +1,8 @@
 name: json_craft
 description: "JsonCraft - Powerful JSON template engine for Flutter/Dart with variable interpolation, smart conditionals, chainable formatters, and type preservation. Generate dynamic JSON with elegant pipe syntax and extensible formatter architecture."
 version: 0.0.1
-homepage:
+homepage: https://github.com/RafaelBarbosatec/json_craft
+repository: https://github.com/rafaelbarbosatec/json_craft
 
 environment:
   sdk: ^3.6.2
