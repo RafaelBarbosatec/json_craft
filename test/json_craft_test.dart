@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:json_craft/json_craft.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('JsonCraft', () {
