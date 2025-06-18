@@ -212,6 +212,24 @@ void main() {
       expect(processedMap.containsKey('discount'), isFalse);
     });
 
+    test('deve excluir propriedade quando condicional not exist', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "userName": "{{data.user.name}}",
+        "{{#if:data.products.5}}product 5": "{{data.products.5.name}}"
+      }
+      ''';
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, conditionalData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap.containsKey('product 5'), isFalse);
+      expect(processedMap.containsKey('userName'), isTrue);
+    });
+
     test('deve avaliar condicionais numéricas corretamente', () {
       // Arrange
       final jsonTemplate = '''
