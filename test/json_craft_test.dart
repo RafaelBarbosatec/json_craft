@@ -16,7 +16,7 @@ void main() {
             {"name": "Laptop", "price": 1200.00},
             {"name": "Mouse", "price": 25.00}
           ],
-          "address": {"city": "São Paulo"}
+          "address": {"city": "São Paulo"},
         },
         "someOtherValue": "ignored"
       };
@@ -568,7 +568,8 @@ void main() {
           "upperText": "TEXTO EM MAIÚSCULAS",
           "mixedText": "tExTo MiStUrAdO",
           "emptyText": "",
-          "products": ["Produto A", "Produto B"]
+          "products": ["Produto A", "Produto B"],
+          "welcome": "Bem vindo {name}"
         }
       };
     });
@@ -609,8 +610,8 @@ void main() {
       {
         "capitalize": "{{data.name | capitalize}}",
         "truncateDefault": "{{data.description | truncate}}",
-        "truncateCustom": "{{data.description | truncate:30}}",
-        "truncateShort": "{{data.name | truncate:50}}"
+        "truncateCustom": "{{data.description | truncate(30)}}",
+        "truncateShort": "{{data.name | truncate(50)}}"
       }
       ''';
 
@@ -632,7 +633,7 @@ void main() {
       final jsonTemplate = '''
       {
         "chainedCase": "{{data.mixedText | lowerCase | titleCase}}",
-        "chainedTruncate": "{{data.description | lowerCase | capitalize | truncate:40}}",
+        "chainedTruncate": "{{data.description | lowerCase | capitalize | truncate(40)}}",
         "tripleChain": "{{data.company | upperCase | lowerCase | pascalCase}}"
       }
       ''';
@@ -739,7 +740,7 @@ void main() {
       final jsonTemplate = '''
       {
         "{{#if:data.name}}formattedName": "{{data.name | titleCase}}",
-        "{{#if:!data.emptyText}}hasContent": "{{data.description | truncate:20}}"
+        "{{#if:!data.emptyText}}hasContent": "{{data.description | truncate(20)}}"
       }
       ''';
 
@@ -750,6 +751,22 @@ void main() {
       // Assert
       expect(processedMap['formattedName'], equals('João Silva Santos'));
       expect(processedMap['hasContent'], equals('Este é um texto muit...'));
+    });
+
+    test('deve aplicar formatadores de substituição corretamente', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "welcome": "{{data.welcome | replace(name:data.name) | titleCase}}"
+      }
+      ''';
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, formatterData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['welcome'], equals('Bem Vindo João Silva Santos'));
     });
   });
 }

@@ -145,7 +145,7 @@ class JsonCraft {
       }
     }
 
-    return currentValue;
+    return currentValue ?? '';
   }
 
   // Verifica se a string é um placeholder completo
@@ -196,7 +196,7 @@ class JsonCraft {
     if (formatters.isNotEmpty) {
       String result = currentValue?.toString() ?? '';
       for (final formatter in formatters) {
-        result = _applyFormatter(result, formatter);
+        result = _applyFormatter(result, formatter, context);
       }
       return result;
     }
@@ -224,30 +224,17 @@ class JsonCraft {
           parts.skip(1).map((f) => f.trim()).toList(); // Ex: ["pascalCase", "upperCase"]
 
       // Obter o valor do campo
-      final fieldParts = fieldPath.split('.');
-      dynamic currentValue = context;
+      final currentValue = _getValueFromPath(fieldPath, context)?.toString();
 
-      for (var i = 0; i < fieldParts.length; i++) {
-        final part = fieldParts[i];
-        if (currentValue is Map<String, dynamic> && currentValue.containsKey(part)) {
-          currentValue = currentValue[part];
-        } else if (currentValue is List) {
-          final index = int.tryParse(part);
-          if (index != null && index >= 0 && index < currentValue.length) {
-            currentValue = currentValue[index];
-          } else {
-            throw Exception('Placeholder not found: ${match.group(0)!}');
-          }
-        } else {
-          throw Exception('Placeholder not found: ${match.group(0)!}');
-        }
+      if (currentValue == null) {
+        throw Exception('Placeholder not found: ${match.group(0)!}');
       }
 
-      String result = currentValue?.toString() ?? '';
+      String result = currentValue;
 
       // Aplicar formatadores em sequência
       for (final formatter in formatters) {
-        result = _applyFormatter(result, formatter);
+        result = _applyFormatter(result, formatter, context);
       }
 
       return result;
@@ -255,22 +242,30 @@ class JsonCraft {
   }
 
   // Aplica um formatador específico ao valor
-  String _applyFormatter(String value, String formatter) {
-    // Verifica se o formatador tem parâmetros (ex: "truncate:50")
-    final formatterParts = formatter.split(':');
+  String _applyFormatter(String value, String formatter, Map<String, dynamic> context) {
+    // Verifica se o formatador tem parâmetros (ex: "truncate(50)")
+
+    String? parameter;
+    final formatterParts = formatter.split('(');
     final formatterName = formatterParts[0];
-    final parameter = formatterParts.length > 1 ? formatterParts[1] : null;
+    if (formatter.contains('(') && formatter.contains(')')) {
+      parameter = formatterParts[1].replaceAll(')', '');
+    }
 
     // Procura o formatador na lista de formatadores disponíveis
     final targetFormatter = _formatters.firstWhere(
       (f) => f.name == formatterName,
       orElse: () => JsonCraftFormatter(
         name: 'identity',
-        formatter: (value, param) => value, // Retorna valor original se não encontrar
+        formatter: (value, param, getValue) => value, // Retorna valor original se não encontrar
       ),
     );
 
     // Aplica o formatador encontrado
-    return targetFormatter.format(value, parameter);
+    return targetFormatter.format(
+      value,
+      parameter,
+      (value) => _getValueFromPath(value, context) ?? value,
+    );
   }
 }
