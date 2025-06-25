@@ -146,6 +146,7 @@ Use a sintaxe de pipe `|` para aplicar formatadores:
 | `sentenceCase` | "JOÃO SILVA" | "João silva" | Sentence case |
 | `upperCase` | "joão" | "JOÃO" | MAIÚSCULAS |
 | `lowerCase` | "JOÃO" | "joão" | minúsculas |
+| `replace(name:data.name)` | "Bem vindo {name}" | "Bem vindo João Silva" | Substituição de valores |
 
 ##### ✏️ Formatadores de Texto
 
