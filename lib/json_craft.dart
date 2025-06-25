@@ -170,26 +170,10 @@ class JsonCraft {
     final fieldPath = parts[0].trim();
     final formatters = parts.skip(1).map((f) => f.trim()).toList();
 
-    final fieldParts = fieldPath.split('.');
-    dynamic currentValue = context;
+    dynamic currentValue = _getValueFromPath(fieldPath, context);
 
-    for (var i = 0; i < fieldParts.length; i++) {
-      final part = fieldParts[i];
-      if (currentValue is Map<String, dynamic> && currentValue.containsKey(part)) {
-        currentValue = currentValue[part];
-      } else if (currentValue is List) {
-        // Tenta converter a parte para um índice numérico
-        final index = int.tryParse(part);
-        if (index != null && index >= 0 && index < currentValue.length) {
-          currentValue = currentValue[index];
-        } else {
-          // Índice inválido ou fora dos limites
-          throw Exception('Placeholder not found: $text');
-        }
-      } else {
-        // Se a chave não for encontrada ou o tipo não for Map nem List
-        throw Exception('Placeholder not found: $text');
-      }
+    if (currentValue == null) {
+      throw Exception('Placeholder not found: $text');
     }
 
     // Se há formatadores, aplica eles (resultado será sempre string)
