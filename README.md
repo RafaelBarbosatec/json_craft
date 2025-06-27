@@ -264,6 +264,47 @@ void main() {
 }
 ```
 
+### 7. 🔄 Map
+
+Use `{{#map:campo}}` para iterar sobre arrays e gerar objetos dinâmicos:
+
+```dart
+// Template
+{
+  "{{#map:data.usuarios}}usuarios": {
+    "titulo": "{{translate.bemVindo}} {{item.nome}} - {{item.idade}}"
+  }
+}
+
+// Dados
+{
+  "translate": {"bemVindo": "Bem vindo"},
+  "data": {
+    "usuarios": [
+      {"nome": "Rafael", "idade": 32},
+      {"nome": "Ana", "idade": 35}
+    ]
+  }
+}
+
+// Resultado
+{
+  "usuarios": [
+    {"titulo": "Bem vindo Rafael - 32"},
+    {"titulo": "Bem vindo Ana - 35"}
+  ]
+}
+```
+
+#### 🔍 Avaliação de Map
+
+| Valor | `{{#map:campo}}` |
+|-------|-----------------|
+| `[]` (array vazio) | ❌ Exclui |
+| `[1,2,3]` | ✅ Itera |
+
+O `map` permite criar objetos dinâmicos baseados em arrays, com suporte a interpolação e formatadores.
+
 ## 🎯 Casos de Uso
 
 ### 🏷️ Geração de Identificadores
