@@ -1,5 +1,6 @@
-## next
+## 0.1.0
 * Adds map
+* Adds include
 
 ## 0.0.3
 

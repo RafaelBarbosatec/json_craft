@@ -16,12 +16,17 @@ class JsonCraft {
     }
   }
 
-  String process(String jsonString, Map<String, dynamic> data) {
+  String process(String jsonString, Map<String, dynamic> data,
+      {Map<String, String>? templates}) {
     // Converte a string JSON para um objeto Dart (Map ou List)
     final decodedJson = json.decode(jsonString);
 
     // Recursivamente substitui os placeholders
-    final processedJson = _replacePlaceholdersRecursive(decodedJson, data);
+    final processedJson = _replacePlaceholdersRecursive(
+      decodedJson,
+      data,
+      templates,
+    );
 
     // Converte o objeto Dart de volta para uma string JSON
     return json.encode(processedJson);
@@ -29,9 +34,15 @@ class JsonCraft {
 
   // Função recursiva para percorrer o objeto JSON e substituir os placeholders
   dynamic _replacePlaceholdersRecursive(
-      dynamic data, Map<String, dynamic> context) {
+    dynamic data,
+    Map<String, dynamic> context,
+    Map<String, String>? templates,
+  ) {
     if (data is String) {
       if (_isCompletePlaceholder(data)) {
+        if (_isIncludePlaceholder(data)) {
+          return _getIncludedTemplate(data, templates, context);
+        }
         return _getPlaceholderValue(data, context);
       } else {
         return _replaceStringPlaceholders(data, context);
@@ -44,22 +55,30 @@ class JsonCraft {
         if (_hasConditional(processedKey)) {
           if (_evaluateConditional(processedKey, context)) {
             final cleanKey = _removeConditional(processedKey);
-            newMap[cleanKey] = _replacePlaceholdersRecursive(value, context);
+            newMap[cleanKey] =
+                _replacePlaceholdersRecursive(value, context, templates);
           }
           // Se a condicional for falsa, não adiciona a propriedade
         } else if (_hasMap(processedKey)) {
           final cleanKey = _removeMap(processedKey);
-          newMap[cleanKey] = _evaluateMap(processedKey, value, context);
+          newMap[cleanKey] = _evaluateMap(
+            processedKey,
+            value,
+            context,
+            templates,
+          );
         } else {
           // Chave normal, processa normalmente
-          newMap[processedKey] = _replacePlaceholdersRecursive(value, context);
+          newMap[processedKey] =
+              _replacePlaceholdersRecursive(value, context, templates);
         }
       });
       return newMap;
     } else if (data is List) {
       // Se for uma lista, itera sobre os elementos
       return data
-          .map((item) => _replacePlaceholdersRecursive(item, context))
+          .map(
+              (item) => _replacePlaceholdersRecursive(item, context, templates))
           .toList();
     }
     // Se não for string, map ou list, retorna o próprio dado
@@ -268,6 +287,7 @@ class JsonCraft {
     String key,
     dynamic template,
     Map<String, dynamic> context,
+    Map<String, String>? templates,
   ) {
     final regex = RegExp(r'\{\{#map:([^}]+)\}\}');
     final match = regex.firstMatch(key);
@@ -285,7 +305,7 @@ class JsonCraft {
 
     return items.map((item) {
       final itemContext = {...context, 'item': item};
-      return _replacePlaceholdersRecursive(template, itemContext);
+      return _replacePlaceholdersRecursive(template, itemContext, templates);
     }).toList();
   }
 
@@ -293,5 +313,37 @@ class JsonCraft {
   String _removeMap(String key) {
     final regex = RegExp(r'\{\{#map:[^}]+\}\}');
     return key.replaceAll(regex, '').trim();
+  }
+
+  // Verifica se a chave tem um include ({{#include:id}})
+  bool _isIncludePlaceholder(String text) {
+    final regex = RegExp(r'^\{\{#include:([^}]+)\}\}$');
+    return regex.hasMatch(text);
+  }
+
+  // Obtém e processa um template incluído
+  dynamic _getIncludedTemplate(String text, Map<String, String>? templates,
+      Map<String, dynamic> context) {
+    if (templates == null) {
+      throw Exception('Templates not provided for inclusion: $text');
+    }
+
+    final regex = RegExp(r'^\{\{#include:([^}]+)\}\}$');
+    final match = regex.firstMatch(text);
+
+    if (match == null) {
+      throw Exception('Invalid include syntax: $text');
+    }
+
+    final templateId = match.group(1)!;
+
+    if (!templates.containsKey(templateId)) {
+      throw Exception('Template not found: $templateId');
+    }
+
+    final templateString = templates[templateId]!;
+    final decodedTemplate = json.decode(templateString);
+
+    return _replacePlaceholdersRecursive(decodedTemplate, context, templates);
   }
 }

@@ -812,8 +812,8 @@ void main() {
       "translate": {"welcome": "Bem vindo"},
       "data": {
         "users": [
-          {"name": "Rafael","idade":32},
-          {"name": "Ana","idade":35}
+          {"name": "Rafael", "idade": 32},
+          {"name": "Ana", "idade": 35}
         ]
       }
     };
@@ -825,7 +825,89 @@ void main() {
     // Assert
     expect(processedMap['users'], isA<List>());
     expect(processedMap['users'].length, equals(2));
-    expect(processedMap['users'][0], equals({'title': 'Bem vindo Rafael - 32'}));
+    expect(
+        processedMap['users'][0], equals({'title': 'Bem vindo Rafael - 32'}));
     expect(processedMap['users'][1], equals({'title': 'Bem vindo Ana - 35'}));
+  });
+
+  group('JsonCraft process with template inclusion', () {
+    test('should include and process templates correctly', () {
+      final jsonCraft = JsonCraft();
+
+      final mainTemplate = json.encode(
+          {'title': '{{title}}', 'content': '{{#include:subTemplate}}'});
+
+      final subTemplate =
+          json.encode({'subtitle': '{{subtitle}}', 'details': '{{details}}'});
+
+      final templates = {'subTemplate': subTemplate};
+
+      final data = {
+        'title': 'Main Title',
+        'subtitle': 'Sub Title',
+        'details': 'Some details here.'
+      };
+
+      final result =
+          jsonCraft.process(mainTemplate, data, templates: templates);
+
+      final expected = json.encode({
+        'title': 'Main Title',
+        'content': {'subtitle': 'Sub Title', 'details': 'Some details here.'}
+      });
+
+      expect(result, equals(expected));
+    });
+
+    test('should throw an exception if template is missing', () {
+      final jsonCraft = JsonCraft();
+
+      final mainTemplate = json.encode(
+          {'title': '{{title}}', 'content': '{{#include:missingTemplate}}'});
+
+      final data = {'title': 'Main Title'};
+
+      expect(() => jsonCraft.process(mainTemplate, data, templates: {}),
+          throwsException);
+    });
+
+    test('use map and templates', () {
+      // Arrange
+      final jsonTemplate = '''
+    {
+      "{{#map:data.users}}users": "{{#include:itemTemplate}}"
+    }
+    ''';
+
+      final itemTemplate = json.encode(
+          {"title": "{{translate.welcome}} {{item.name}} - {{item.idade}}"});
+
+      final testData = {
+        "translate": {"welcome": "Bem vindo"},
+        "data": {
+          "users": [
+            {"name": "Rafael", "idade": 32},
+            {"name": "Ana", "idade": 35}
+          ]
+        }
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(
+        jsonTemplate,
+        testData,
+        templates: {
+          'itemTemplate': itemTemplate,
+        },
+      );
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['users'], isA<List>());
+      expect(processedMap['users'].length, equals(2));
+      expect(
+          processedMap['users'][0], equals({'title': 'Bem vindo Rafael - 32'}));
+      expect(processedMap['users'][1], equals({'title': 'Bem vindo Ana - 35'}));
+    });
   });
 }

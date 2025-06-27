@@ -305,6 +305,76 @@ Use `{{#map:campo}}` para iterar sobre arrays e gerar objetos dinâmicos:
 
 O `map` permite criar objetos dinâmicos baseados em arrays, com suporte a interpolação e formatadores.
 
+### 8. 📦 Inclusão de Templates
+
+Agora é possível incluir templates adicionais no processamento usando o placeholder especial `{{#include:id}}`. Isso permite modularizar e reutilizar partes do JSON.
+
+#### Exemplo de Uso
+
+```dart
+// Template principal
+{
+  "titulo": "{{titulo}}",
+  "conteudo": "{{#include:subTemplate}}"
+}
+
+// Template adicional
+{
+  "subtitulo": "{{subtitulo}}",
+  "detalhes": "{{detalhes}}"
+}
+
+// Dados
+{
+  "titulo": "Título Principal",
+  "subtitulo": "Subtítulo",
+  "detalhes": "Alguns detalhes aqui."
+}
+
+// Resultado
+{
+  "titulo": "Título Principal",
+  "conteudo": {
+    "subtitulo": "Subtítulo",
+    "detalhes": "Alguns detalhes aqui."
+  }
+}
+```
+
+#### Como Usar
+
+Passe os templates adicionais como um mapa no método `process`:
+
+```dart
+final mainTemplate = json.encode({
+  'titulo': '{{titulo}}',
+  'conteudo': '{{#include:subTemplate}}'
+});
+
+final subTemplate = json.encode({
+  'subtitulo': '{{subtitulo}}',
+  'detalhes': '{{detalhes}}'
+});
+
+final templates = {
+  'subTemplate': subTemplate
+};
+
+final data = {
+  'titulo': 'Título Principal',
+  'subtitulo': 'Subtítulo',
+  'detalhes': 'Alguns detalhes aqui.'
+};
+
+final resultado = JsonCraft().process(mainTemplate, data, templates: templates);
+print(resultado);
+```
+
+#### Tratamento de Erros
+
+- **Template ausente**: Lança exceção se o template referenciado não for encontrado.
+- **Placeholder inválido**: Lança exceção para sintaxe incorreta.
+
 ## 🎯 Casos de Uso
 
 ### 🏷️ Geração de Identificadores
