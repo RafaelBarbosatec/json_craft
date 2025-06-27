@@ -1,3 +1,6 @@
+## next
+* Adds map
+
 ## 0.0.3
 
 * Add replace formatter

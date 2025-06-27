@@ -28,30 +28,28 @@ class JsonCraft {
   }
 
   // Função recursiva para percorrer o objeto JSON e substituir os placeholders
-  dynamic _replacePlaceholdersRecursive(dynamic data, Map<String, dynamic> context) {
+  dynamic _replacePlaceholdersRecursive(
+      dynamic data, Map<String, dynamic> context) {
     if (data is String) {
-      // Verifica se a string é um placeholder completo (ex: "{{products}}")
       if (_isCompletePlaceholder(data)) {
         return _getPlaceholderValue(data, context);
       } else {
-        // Se for uma string com placeholders misturados, tenta substituir os placeholders
         return _replaceStringPlaceholders(data, context);
       }
     } else if (data is Map) {
-      // Se for um mapa, itera sobre as chaves e valores
       final newMap = <String, dynamic>{};
       data.forEach((key, value) {
         final processedKey = key as String;
 
-        // Verifica se a chave tem uma condicional
         if (_hasConditional(processedKey)) {
-          // Avalia a condicional
           if (_evaluateConditional(processedKey, context)) {
-            // Remove a condicional da chave e adiciona ao mapa
             final cleanKey = _removeConditional(processedKey);
             newMap[cleanKey] = _replacePlaceholdersRecursive(value, context);
           }
           // Se a condicional for falsa, não adiciona a propriedade
+        } else if (_hasMap(processedKey)) {
+          final cleanKey = _removeMap(processedKey);
+          newMap[cleanKey] = _evaluateMap(processedKey, value, context);
         } else {
           // Chave normal, processa normalmente
           newMap[processedKey] = _replacePlaceholdersRecursive(value, context);
@@ -60,7 +58,9 @@ class JsonCraft {
       return newMap;
     } else if (data is List) {
       // Se for uma lista, itera sobre os elementos
-      return data.map((item) => _replacePlaceholdersRecursive(item, context)).toList();
+      return data
+          .map((item) => _replacePlaceholdersRecursive(item, context))
+          .toList();
     }
     // Se não for string, map ou list, retorna o próprio dado
     return data;
@@ -131,7 +131,8 @@ class JsonCraft {
 
     for (var i = 0; i < parts.length; i++) {
       final part = parts[i];
-      if (currentValue is Map<String, dynamic> && currentValue.containsKey(part)) {
+      if (currentValue is Map<String, dynamic> &&
+          currentValue.containsKey(part)) {
         currentValue = currentValue[part];
       } else if (currentValue is List) {
         final index = int.tryParse(part);
@@ -204,8 +205,10 @@ class JsonCraft {
       // Verifica se há formatadores (pipe |)
       final parts = placeholder.split('|');
       final fieldPath = parts[0].trim(); // Ex: "data.name"
-      final formatters =
-          parts.skip(1).map((f) => f.trim()).toList(); // Ex: ["pascalCase", "upperCase"]
+      final formatters = parts
+          .skip(1)
+          .map((f) => f.trim())
+          .toList(); // Ex: ["pascalCase", "upperCase"]
 
       // Obter o valor do campo
       final currentValue = _getValueFromPath(fieldPath, context)?.toString();
@@ -226,7 +229,8 @@ class JsonCraft {
   }
 
   // Aplica um formatador específico ao valor
-  String _applyFormatter(String value, String formatter, Map<String, dynamic> context) {
+  String _applyFormatter(
+      String value, String formatter, Map<String, dynamic> context) {
     // Verifica se o formatador tem parâmetros (ex: "truncate(50)")
 
     String? parameter;
@@ -241,7 +245,8 @@ class JsonCraft {
       (f) => f.name == formatterName,
       orElse: () => JsonCraftFormatter(
         name: 'identity',
-        formatter: (value, param, getValue) => value, // Retorna valor original se não encontrar
+        formatter: (value, param, getValue) =>
+            value, // Retorna valor original se não encontrar
       ),
     );
 
@@ -251,5 +256,42 @@ class JsonCraft {
       parameter,
       (value) => _getValueFromPath(value, context) ?? value,
     );
+  }
+
+  // Verifica se a chave tem um map ({{#map:path}})
+  bool _hasMap(String key) {
+    return key.contains(RegExp(r'\{\{#map:[^}]+\}\}'));
+  }
+
+  // Avalia o map e retorna o resultado
+  List<dynamic> _evaluateMap(
+    String key,
+    dynamic template,
+    Map<String, dynamic> context,
+  ) {
+    final regex = RegExp(r'\{\{#map:([^}]+)\}\}');
+    final match = regex.firstMatch(key);
+
+    if (match == null) {
+      throw Exception('Invalid map syntax: $key');
+    }
+
+    final path = match.group(1)!;
+    final items = _getValueFromPath(path, context);
+
+    if (items is! List) {
+      throw Exception('Path does not point to a list: $path');
+    }
+
+    return items.map((item) {
+      final itemContext = {...context, 'item': item};
+      return _replacePlaceholdersRecursive(template, itemContext);
+    }).toList();
+  }
+
+  // Remove o map da chave
+  String _removeMap(String key) {
+    final regex = RegExp(r'\{\{#map:[^}]+\}\}');
+    return key.replaceAll(regex, '').trim();
   }
 }

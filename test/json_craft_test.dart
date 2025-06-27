@@ -22,7 +22,8 @@ void main() {
       };
     });
 
-    test('deve processar template JSON com placeholders válidos corretamente', () {
+    test('deve processar template JSON com placeholders válidos corretamente',
+        () {
       // Arrange
       final jsonTemplate = '''
       {
@@ -53,9 +54,12 @@ void main() {
 
       // Assert
       expect(processedMap['title'], equals('Welcome, João!'));
-      expect(processedMap['message'],
-          equals('Your email is joao@example.com and you have 5 new notifications.'));
-      expect(processedMap['description'], equals('This is a simple description.'));
+      expect(
+          processedMap['message'],
+          equals(
+              'Your email is joao@example.com and you have 5 new notifications.'));
+      expect(
+          processedMap['description'], equals('This is a simple description.'));
 
       // Verificar items array - agora preserva tipos originais para placeholders completos
       final items = processedMap['items'] as List;
@@ -84,7 +88,8 @@ void main() {
       );
     });
 
-    test('deve lançar exceção quando índice do array está fora dos limites', () {
+    test('deve lançar exceção quando índice do array está fora dos limites',
+        () {
       // Arrange
       final jsonTemplateWithInvalidIndex = '''
       {
@@ -172,7 +177,8 @@ void main() {
       };
     });
 
-    test('deve incluir propriedade quando condicional booleana for verdadeira', () {
+    test('deve incluir propriedade quando condicional booleana for verdadeira',
+        () {
       // Arrange
       final jsonTemplate = '''
       {
@@ -266,8 +272,10 @@ void main() {
 
       // Assert
       expect(processedMap['userName'], equals('João'));
-      expect(processedMap['productsAvailable'], isA<List>()); // Lista não vazia é truthy
-      expect(processedMap.containsKey('noProducts'), isFalse); // Lista vazia é falsy
+      expect(processedMap['productsAvailable'],
+          isA<List>()); // Lista não vazia é truthy
+      expect(processedMap.containsKey('noProducts'),
+          isFalse); // Lista vazia é falsy
     });
 
     test('deve avaliar condicionais de string corretamente', () {
@@ -286,9 +294,10 @@ void main() {
 
       // Assert
       expect(processedMap['userName'], equals('João'));
-      expect(
-          processedMap['hasDescription'], equals('Cliente premium')); // String não vazia é truthy
-      expect(processedMap.containsKey('noDescription'), isFalse); // String vazia é falsy
+      expect(processedMap['hasDescription'],
+          equals('Cliente premium')); // String não vazia é truthy
+      expect(processedMap.containsKey('noDescription'),
+          isFalse); // String vazia é falsy
     });
 
     test('deve avaliar condicionais de valores nulos corretamente', () {
@@ -308,7 +317,8 @@ void main() {
       // Assert
       expect(processedMap['userName'], equals('João'));
       expect(processedMap.containsKey('vipLevel'), isFalse); // null é falsy
-      expect(processedMap.containsKey('nonExistent'), isFalse); // campo inexistente é falsy
+      expect(processedMap.containsKey('nonExistent'),
+          isFalse); // campo inexistente é falsy
     });
 
     test('deve processar condicionais aninhadas corretamente', () {
@@ -382,17 +392,24 @@ void main() {
 
       // Negação de valores truthy deve resultar em false (propriedade não incluída)
       expect(processedMap.containsKey('notActive'), isFalse); // !true = false
-      expect(processedMap.containsKey('noFilledList'), isFalse); // ![1,2,3] = false
-      expect(processedMap.containsKey('noFilledString'), isFalse); // !"conteúdo" = false
+      expect(processedMap.containsKey('noFilledList'),
+          isFalse); // ![1,2,3] = false
+      expect(processedMap.containsKey('noFilledString'),
+          isFalse); // !"conteúdo" = false
       expect(processedMap.containsKey('notPositive'), isFalse); // !5 = false
 
       // Negação de valores falsy deve resultar em true (propriedade incluída)
-      expect(processedMap['isActive'], equals('Usuário ativo')); // !false = true
-      expect(processedMap['noEmptyList'], equals('Lista não está vazia')); // ![] = true
-      expect(processedMap['noEmptyString'], equals('String não está vazia')); // !"" = true
+      expect(
+          processedMap['isActive'], equals('Usuário ativo')); // !false = true
+      expect(processedMap['noEmptyList'],
+          equals('Lista não está vazia')); // ![] = true
+      expect(processedMap['noEmptyString'],
+          equals('String não está vazia')); // !"" = true
       expect(processedMap['notZero'], equals('Valor não é zero')); // !0 = true
-      expect(processedMap['notNull'], equals('Valor não é nulo')); // !null = true
-      expect(processedMap['notExists'], equals('Campo não existe')); // !undefined = true
+      expect(
+          processedMap['notNull'], equals('Valor não é nulo')); // !null = true
+      expect(processedMap['notExists'],
+          equals('Campo não existe')); // !undefined = true
     });
 
     test('deve processar negação com condicionais aninhadas', () {
@@ -429,10 +446,11 @@ void main() {
 
       // !showProfile (false) = true, então hiddenProfile deve existir
       expect(processedMap.containsKey('hiddenProfile'), isTrue);
-      final hiddenProfile = processedMap['hiddenProfile'] as Map<String, dynamic>;
+      final hiddenProfile =
+          processedMap['hiddenProfile'] as Map<String, dynamic>;
       expect(hiddenProfile['message'], equals('Perfil oculto'));
-      expect(
-          hiddenProfile['noNotifications'], equals('Notificações desabilitadas')); // !false = true
+      expect(hiddenProfile['noNotifications'],
+          equals('Notificações desabilitadas')); // !false = true
       expect(hiddenProfile.containsKey('noPrivacy'), isFalse); // !true = false
 
       // !hideProfile (true) = false, então visibleProfile não deve existir
@@ -495,7 +513,8 @@ void main() {
       ''';
 
       // Act
-      final processedJson = JsonCraft().process(jsonTemplate, dadosComValoresVazios);
+      final processedJson =
+          JsonCraft().process(jsonTemplate, dadosComValoresVazios);
       final processedMap = json.decode(processedJson) as Map<String, dynamic>;
 
       // Assert
@@ -512,7 +531,8 @@ void main() {
       expect(processedMap['hasNonEmptyObject'], equals('Deve aparecer'));
     });
 
-    test('deve preservar tipos originais em condicionais com valores vazios', () {
+    test('deve preservar tipos originais em condicionais com valores vazios',
+        () {
       // Arrange
       final dadosComValoresVazios = {
         "data": {
@@ -537,7 +557,8 @@ void main() {
       ''';
 
       // Act
-      final processedJson = JsonCraft().process(jsonTemplate, dadosComValoresVazios);
+      final processedJson =
+          JsonCraft().process(jsonTemplate, dadosComValoresVazios);
       final processedMap = json.decode(processedJson) as Map<String, dynamic>;
 
       // Assert
@@ -622,8 +643,10 @@ void main() {
       // Assert
       expect(processedMap['capitalize'], equals('João silva santos'));
       expect(processedMap['truncateDefault'], contains('...'));
-      expect(processedMap['truncateDefault'].length, equals(103)); // 100 + "..."
-      expect(processedMap['truncateCustom'], equals('Este é um texto muito longo qu...'));
+      expect(
+          processedMap['truncateDefault'].length, equals(103)); // 100 + "..."
+      expect(processedMap['truncateCustom'],
+          equals('Este é um texto muito longo qu...'));
       expect(processedMap['truncateShort'],
           equals('joão silva santos')); // Não trunca pois é menor que 50
     });
@@ -644,8 +667,8 @@ void main() {
 
       // Assert
       expect(processedMap['chainedCase'], equals('Texto Misturado'));
-      expect(
-          processedMap['chainedTruncate'], equals('Este é um texto muito longo que precisa ...'));
+      expect(processedMap['chainedTruncate'],
+          equals('Este é um texto muito longo que precisa ...'));
       expect(processedMap['tripleChain'], equals('TechCompanyName'));
     });
 
@@ -664,10 +687,12 @@ void main() {
       final processedMap = json.decode(processedJson) as Map<String, dynamic>;
 
       // Assert
-      expect(processedMap['formattedName'], equals('João Silva Santos')); // String formatada
-      expect(processedMap['rawProducts'], isA<List>()); // Lista original preservada
-      expect(
-          processedMap['formattedProducts'], equals('[PRODUTO A, PRODUTO B]')); // String formatada
+      expect(processedMap['formattedName'],
+          equals('João Silva Santos')); // String formatada
+      expect(processedMap['rawProducts'],
+          isA<List>()); // Lista original preservada
+      expect(processedMap['formattedProducts'],
+          equals('[PRODUTO A, PRODUTO B]')); // String formatada
     });
 
     test('deve tratar formatadores inexistentes graciosamente', () {
@@ -686,8 +711,10 @@ void main() {
 
       // Assert
       expect(processedMap['validFormatter'], equals('JOÃO SILVA SANTOS'));
-      expect(processedMap['invalidFormatter'], equals('joão silva santos')); // Valor original
-      expect(processedMap['mixedFormatters'], equals('joão silva santos')); // Aplica só os válidos
+      expect(processedMap['invalidFormatter'],
+          equals('joão silva santos')); // Valor original
+      expect(processedMap['mixedFormatters'],
+          equals('joão silva santos')); // Aplica só os válidos
     });
 
     test('deve aplicar formatadores em strings mistas', () {
@@ -706,8 +733,8 @@ void main() {
 
       // Assert
       expect(processedMap['greeting'], equals('Olá, João Silva Santos!'));
-      expect(
-          processedMap['profile'], equals('JoãoSilvaSantos trabalha como Desenvolvedor Flutter'));
+      expect(processedMap['profile'],
+          equals('JoãoSilvaSantos trabalha como Desenvolvedor Flutter'));
       expect(processedMap['code'], equals('ID: user_profile'));
     });
 
@@ -732,7 +759,8 @@ void main() {
       // Assert
       expect(processedMap['emptyFormatted'], equals(''));
       expect(processedMap['nullFormatted'], equals(''));
-      expect(processedMap['spaceFormatted'], equals('   ')); // Espaços são preservados
+      expect(processedMap['spaceFormatted'],
+          equals('   ')); // Espaços são preservados
     });
 
     test('deve aplicar formatadores com condicionais', () {
@@ -768,5 +796,36 @@ void main() {
       // Assert
       expect(processedMap['welcome'], equals('Bem Vindo João Silva Santos'));
     });
+  });
+
+  test('deve processar map corretamente', () {
+    // Arrange
+    final jsonTemplate = '''
+    {
+      "{{#map:data.users}}users": {
+        "title":"{{translate.welcome}} {{item.name}} - {{item.idade}}"
+      }
+    }
+    ''';
+
+    final testData = {
+      "translate": {"welcome": "Bem vindo"},
+      "data": {
+        "users": [
+          {"name": "Rafael","idade":32},
+          {"name": "Ana","idade":35}
+        ]
+      }
+    };
+
+    // Act
+    final processedJson = JsonCraft().process(jsonTemplate, testData);
+    final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+    // Assert
+    expect(processedMap['users'], isA<List>());
+    expect(processedMap['users'].length, equals(2));
+    expect(processedMap['users'][0], equals({'title': 'Bem vindo Rafael - 32'}));
+    expect(processedMap['users'][1], equals({'title': 'Bem vindo Ana - 35'}));
   });
 }
