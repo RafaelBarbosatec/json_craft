@@ -6,6 +6,8 @@ typedef ReplaceRecursiveFunction = dynamic Function(
   Map<String, dynamic>? extraContext,
 });
 
+typedef GetValueFromPathFunction = dynamic Function(String value);
+
 abstract class JsonCraftFunction {
   RegExp get regex;
 
@@ -20,7 +22,7 @@ abstract class JsonCraftFunction {
   Map<String, dynamic> call(
     String key,
     dynamic value,
-    dynamic Function(String value) getValue,
+    GetValueFromPathFunction getValue,
     ReplaceRecursiveFunction replaceRecursive,
   );
 }
@@ -40,7 +42,7 @@ class JsonCraftEmptyFunction extends JsonCraftFunction {
   Map<String, dynamic> call(
     String key,
     dynamic value,
-    dynamic Function(String value) getValue,
+    GetValueFromPathFunction getValue,
     ReplaceRecursiveFunction replaceRecursive,
   ) {
     return {key: replaceRecursive(value)};

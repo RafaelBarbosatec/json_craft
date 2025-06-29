@@ -12,7 +12,11 @@ class JsonCraftFormatter {
     required this.formatter,
   });
 
-  dynamic format(String value, String? param, String Function(String value) getValue) {
+  dynamic format(
+    String value,
+    String? param,
+    String Function(String value) getValue,
+  ) {
     return formatter(value, param, getValue);
   }
 }
@@ -43,7 +47,8 @@ abstract class DefaultJsonCraftFormatter {
           return value
               .split(RegExp(r'[\s_-]+'))
               .where((word) => word.isNotEmpty) // Remove palavras vazias
-              .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
+              .map((word) =>
+                  word[0].toUpperCase() + word.substring(1).toLowerCase())
               .join(' ');
         },
       );
@@ -83,8 +88,9 @@ abstract class DefaultJsonCraftFormatter {
         formatter: (value, param, getValue) {
           return value
               .split(RegExp(r'[\s_-]+'))
-              .map((word) =>
-                  word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1).toLowerCase())
+              .map((word) => word.isEmpty
+                  ? ''
+                  : word[0].toUpperCase() + word.substring(1).toLowerCase())
               .join('');
         },
       );
@@ -93,7 +99,9 @@ abstract class DefaultJsonCraftFormatter {
         name: 'camelCase',
         formatter: (value, param, getValue) {
           final pascalCaseR = pascalCase.formatter(value, param, getValue);
-          return pascalCaseR.isEmpty ? '' : pascalCaseR[0].toLowerCase() + pascalCaseR.substring(1);
+          return pascalCaseR.isEmpty
+              ? ''
+              : pascalCaseR[0].toLowerCase() + pascalCaseR.substring(1);
         },
       );
 
@@ -108,7 +116,10 @@ abstract class DefaultJsonCraftFormatter {
             return '${match.group(1)}_${match.group(2)}';
           });
 
-          return result.toLowerCase().replaceAll(RegExp(r'^_+'), '').replaceAll(RegExp(r'_+'), '_');
+          return result
+              .toLowerCase()
+              .replaceAll(RegExp(r'^_+'), '')
+              .replaceAll(RegExp(r'_+'), '_');
         },
       );
 
@@ -123,7 +134,10 @@ abstract class DefaultJsonCraftFormatter {
             return '${match.group(1)}-${match.group(2)}';
           });
 
-          return result.toLowerCase().replaceAll(RegExp(r'^-+'), '').replaceAll(RegExp(r'-+'), '-');
+          return result
+              .toLowerCase()
+              .replaceAll(RegExp(r'^-+'), '')
+              .replaceAll(RegExp(r'-+'), '-');
         },
       );
 
@@ -143,7 +157,10 @@ abstract class DefaultJsonCraftFormatter {
           for (final p in partes) {
             final keyValue = p.split(':');
             if (keyValue.length == 2) {
-              value = value.replaceAll('{${keyValue[0]}}', getValue(keyValue[1]));
+              value = value.replaceAll(
+                '{${keyValue[0]}}',
+                getValue(keyValue[1]),
+              );
             }
           }
           return value;

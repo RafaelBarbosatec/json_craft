@@ -8,7 +8,7 @@ class JsonCraftMapFunction extends JsonCraftFunction {
   Map<String, dynamic> call(
     String key,
     value,
-    dynamic Function(String value) getValue,
+    GetValueFromPathFunction getValue,
     ReplaceRecursiveFunction replaceRecursive,
   ) {
     final cleanKey = clearKey(key);

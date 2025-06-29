@@ -8,7 +8,7 @@ class JsonCraftIfFunction extends JsonCraftFunction {
   Map<String, dynamic> call(
     String key,
     dynamic value,
-    dynamic Function(String value) getValue,
+    GetValueFromPathFunction getValue,
     ReplaceRecursiveFunction replaceRecursive,
   ) {
     if (_evaluateConditional(key, getValue)) {
