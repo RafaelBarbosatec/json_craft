@@ -1,18 +1,26 @@
 import 'dart:convert';
 
+import 'package:json_craft/functions/json_craft_function.dart';
+
 import 'json_craft_formatter.dart';
 
 export 'json_craft_formatter.dart';
 
 class JsonCraft {
   List<JsonCraftFormatter> _formatters = [];
+  List<JsonCraftFunction> _functions = [];
 
   JsonCraft({
     List<JsonCraftFormatter>? formatters,
+    List<JsonCraftFunction>? functions,
   }) {
     _formatters = [...DefaultJsonCraftFormatter.defaultFormatters];
+    _functions = [...JsonCraftFunctionDetafult.defaultFunctions];
     if (formatters != null) {
       _formatters.addAll(formatters);
+    }
+    if (functions != null) {
+      _functions.addAll(functions);
     }
   }
 
@@ -49,98 +57,45 @@ class JsonCraft {
       }
     } else if (data is Map) {
       final newMap = <String, dynamic>{};
+
       data.forEach((key, value) {
         final processedKey = key as String;
 
-        if (_hasConditional(processedKey)) {
-          if (_evaluateConditional(processedKey, context)) {
-            final cleanKey = _removeConditional(processedKey);
-            newMap[cleanKey] =
-                _replacePlaceholdersRecursive(value, context, templates);
-          }
-          // Se a condicional for falsa, não adiciona a propriedade
-        } else if (_hasMap(processedKey)) {
-          final cleanKey = _removeMap(processedKey);
-          newMap[cleanKey] = _evaluateMap(
-            processedKey,
+        final function = _functions.firstWhere(
+          (element) => element.has(processedKey),
+          orElse: () => JsonCraftEmptyFunction(),
+        );
+        newMap.addAll(
+          function.call(
+            key,
             value,
-            context,
-            templates,
-          );
-        } else {
-          // Chave normal, processa normalmente
-          newMap[processedKey] =
-              _replacePlaceholdersRecursive(value, context, templates);
-        }
+            (value) => _getValueFromPath(value, context),
+            (data, {extraContext}) => _replacePlaceholdersRecursive(
+              data,
+              {
+                ...context,
+                ...extraContext ?? {},
+              },
+              templates,
+            ),
+          ),
+        );
       });
       return newMap;
     } else if (data is List) {
       // Se for uma lista, itera sobre os elementos
       return data
           .map(
-              (item) => _replacePlaceholdersRecursive(item, context, templates))
+            (item) => _replacePlaceholdersRecursive(
+              item,
+              context,
+              templates,
+            ),
+          )
           .toList();
     }
     // Se não for string, map ou list, retorna o próprio dado
     return data;
-  }
-
-  // Verifica se a chave tem uma condicional ({{#if:condition}})
-  bool _hasConditional(String key) {
-    return key.contains(RegExp(r'\{\{#if:[^}]+\}\}'));
-  }
-
-  // Avalia se a condicional é verdadeira
-  bool _evaluateConditional(String key, Map<String, dynamic> context) {
-    final regex = RegExp(r'\{\{#if:([^}]+)\}\}');
-    final match = regex.firstMatch(key);
-
-    if (match == null) return true;
-
-    final condition = match.group(1)!;
-
-    // Verifica se há negação (!)
-    bool isNegated = false;
-    String actualCondition = condition;
-
-    if (condition.startsWith('!')) {
-      isNegated = true;
-      actualCondition = condition.substring(1); // Remove o !
-    }
-
-    try {
-      final value = _getValueFromPath(actualCondition, context);
-
-      // Avalia o valor
-      bool result;
-      if (value == null) {
-        result = false;
-      } else if (value is bool) {
-        result = value;
-      } else if (value is String) {
-        result = value.isNotEmpty;
-      } else if (value is List) {
-        result = value.isNotEmpty;
-      } else if (value is Map) {
-        result = value.isNotEmpty;
-      } else if (value is num) {
-        result = value != 0;
-      } else {
-        result = true;
-      }
-
-      // Aplica negação se necessário
-      return isNegated ? !result : result;
-    } catch (e) {
-      // Se não conseguir acessar o valor, retorna false (ou true se negado)
-      return isNegated ? true : false;
-    }
-  }
-
-  // Remove a condicional da chave
-  String _removeConditional(String key) {
-    final regex = RegExp(r'\{\{#if:[^}]+\}\}');
-    return key.replaceAll(regex, '').trim();
   }
 
   // Obtém um valor seguindo um caminho (path) no contexto
@@ -275,44 +230,6 @@ class JsonCraft {
       parameter,
       (value) => _getValueFromPath(value, context) ?? value,
     );
-  }
-
-  // Verifica se a chave tem um map ({{#map:path}})
-  bool _hasMap(String key) {
-    return key.contains(RegExp(r'\{\{#map:[^}]+\}\}'));
-  }
-
-  // Avalia o map e retorna o resultado
-  List<dynamic> _evaluateMap(
-    String key,
-    dynamic template,
-    Map<String, dynamic> context,
-    Map<String, String>? templates,
-  ) {
-    final regex = RegExp(r'\{\{#map:([^}]+)\}\}');
-    final match = regex.firstMatch(key);
-
-    if (match == null) {
-      throw Exception('Invalid map syntax: $key');
-    }
-
-    final path = match.group(1)!;
-    final items = _getValueFromPath(path, context);
-
-    if (items is! List) {
-      throw Exception('Path does not point to a list: $path');
-    }
-
-    return items.map((item) {
-      final itemContext = {...context, 'item': item};
-      return _replacePlaceholdersRecursive(template, itemContext, templates);
-    }).toList();
-  }
-
-  // Remove o map da chave
-  String _removeMap(String key) {
-    final regex = RegExp(r'\{\{#map:[^}]+\}\}');
-    return key.replaceAll(regex, '').trim();
   }
 
   // Verifica se a chave tem um include ({{#include:id}})

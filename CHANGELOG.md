@@ -1,3 +1,6 @@
+## Next
+* Add JsonCraftFunction to enhance flexibility for creating custom functions.
+
 ## 0.1.0
 * Adds map
 * Adds include

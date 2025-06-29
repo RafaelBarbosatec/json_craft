@@ -826,8 +826,13 @@ void main() {
     expect(processedMap['users'], isA<List>());
     expect(processedMap['users'].length, equals(2));
     expect(
-        processedMap['users'][0], equals({'title': 'Bem vindo Rafael - 32'}));
-    expect(processedMap['users'][1], equals({'title': 'Bem vindo Ana - 35'}));
+      processedMap['users'][0],
+      equals({'title': 'Bem vindo Rafael - 32'}),
+    );
+    expect(
+      processedMap['users'][1],
+      equals({'title': 'Bem vindo Ana - 35'}),
+    );
   });
 
   group('JsonCraft process with template inclusion', () {
