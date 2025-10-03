@@ -843,11 +843,12 @@ void main() {
           {'title': '{{title}}', 'content': '{{#include:subTemplate}}'});
 
       final subTemplate =
-          json.encode({'subtitle': '{{subtitle}}', 'details': '{{details}}'});
+          json.encode({'subtitle': '{{translate.welcome}} {{subtitle}}', 'details': '{{details}}'});
 
       final templates = {'subTemplate': subTemplate};
 
       final data = {
+        'translate': {'welcome': 'Bem vindo'},
         'title': 'Main Title',
         'subtitle': 'Sub Title',
         'details': 'Some details here.'
@@ -858,7 +859,7 @@ void main() {
 
       final expected = json.encode({
         'title': 'Main Title',
-        'content': {'subtitle': 'Sub Title', 'details': 'Some details here.'}
+        'content': {'subtitle': 'Bem vindo Sub Title', 'details': 'Some details here.'}
       });
 
       expect(result, equals(expected));
