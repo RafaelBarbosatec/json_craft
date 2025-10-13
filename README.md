@@ -5,7 +5,7 @@
 ![GitHub stars](https://img.shields.io/github/stars/RafaelBarbosatec/json_craft?style=flat)
 [![pub points](https://img.shields.io/pub/points/json_craft?logo=dart)](https://pub.dev/packages/json_craft/score)
 
-Um sistema poderoso e flexível para geração dinâmica de JSON usando templates com interpolação de variáveis, condicionais e formatadores.
+A powerful and flexible system for dynamic JSON generation using templates with variable interpolation, conditionals, and formatters.
 
 ## ✨ Features
 
@@ -23,25 +23,25 @@ Um sistema poderoso e flexível para geração dinâmica de JSON usando template
 - 📝 **Template Inclusion**: Modularize templates with `{{#include:id}}`
 - 🎯 **Dynamic Partials**: Data-driven template selection with `{{#include:*path}}`
 
-## 🚀 Instalação
+## 🚀 Installation
 
 ```dart
 import 'lib/json_craft.dart';
 
 final processor = JsonCraft();
-final resultado = processor.process(jsonTemplate, data);
+final result = processor.process(jsonTemplate, data);
 ```
 
-## 📖 Guia de Uso
+## 📖 Usage Guide
 
-### 1. 🔗 Interpolação Básica
+### 1. 🔗 Basic Interpolation
 
 ```dart
 // Template
 {
-  "nome": "{{data.usuario.nome}}",
+  "name": "{{data.usuario.nome}}",
   "email": "{{data.usuario.email}}",
-  "idade": "{{data.usuario.idade}}"
+  "age": "{{data.usuario.idade}}"
 }
 
 // Dados
@@ -57,23 +57,23 @@ final resultado = processor.process(jsonTemplate, data);
 
 // Resultado
 {
-  "nome": "João Silva",
+  "name": "João Silva",
   "email": "joao@email.com", 
-  "idade": 30
+  "age": 30
 }
 ```
 
-### 2. 🎛️ Condicionais
+### 2. 🎛️ Conditionals
 
-Use `{{#if:campo}}` para incluir propriedades condicionalmente:
+Use `{{#if:field}}` to conditionally include properties:
 
 ```dart
 // Template
 {
-  "nome": "{{data.nome}}",
-  "{{#if:data.isVip}}beneficiosVip": ["Frete grátis", "Desconto especial"],
-  "{{#if:data.temProdutos}}produtos": "{{data.produtos}}",
-  "{{#if:!data.carrinhoVazio}}itensCarrinho": "{{data.carrinho}}"
+  "name": "{{data.nome}}",
+  "{{#if:data.isVip}}vipBenefits": ["Free shipping", "Special discount"],
+  "{{#if:data.temProdutos}}products": "{{data.produtos}}",
+  "{{#if:!data.carrinhoVazio}}cartItems": "{{data.carrinho}}"
 }
 
 // Dados
@@ -89,87 +89,87 @@ Use `{{#if:campo}}` para incluir propriedades condicionalmente:
 
 // Resultado
 {
-  "nome": "Ana",
-  "beneficiosVip": ["Frete grátis", "Desconto especial"],
-  "itensCarrinho": ["item1", "item2"]
+  "name": "Ana",
+  "vipBenefits": ["Free shipping", "Special discount"],
+  "cartItems": ["item1", "item2"]
 }
 ```
 
-#### 🔍 Avaliação de Condicionais
+#### 🔍 Conditional Evaluation
 
-| Valor | `{{#if:campo}}` | `{{#if:!campo}}` |
+| Value | `{{#if:field}}` | `{{#if:!field}}` |
 |-------|-----------------|------------------|
-| `true` | ✅ Inclui | ❌ Exclui |
-| `false` | ❌ Exclui | ✅ Inclui |
-| `""` (string vazia) | ❌ Exclui | ✅ Inclui |
-| `[]` (array vazio) | ❌ Exclui | ✅ Inclui |
-| `{}` (objeto vazio) | ❌ Exclui | ✅ Inclui |
-| `null` | ❌ Exclui | ✅ Inclui |
-| `0` | ❌ Exclui | ✅ Inclui |
-| `"texto"` | ✅ Inclui | ❌ Exclui |
-| `[1,2,3]` | ✅ Inclui | ❌ Exclui |
-| `{"key":"value"}` | ✅ Inclui | ❌ Exclui |
+| `true` | ✅ Included | ❌ Excluded |
+| `false` | ❌ Excluded | ✅ Included |
+| `""` (empty string) | ❌ Excluded | ✅ Included |
+| `[]` (empty array) | ❌ Excluded | ✅ Included |
+| `{}` (empty object) | ❌ Excluded | ✅ Included |
+| `null` | ❌ Excluded | ✅ Included |
+| `0` | ❌ Excluded | ✅ Included |
+| `"text"` | ✅ Included | ❌ Excluded |
+| `[1,2,3]` | ✅ Included | ❌ Excluded |
+| `{"key":"value"}` | ✅ Included | ❌ Excluded |
 
-### 3. 🔄 Formatadores
+### 3. 🔄 Formatters
 
-Use a sintaxe de pipe `|` para aplicar formatadores:
+Use the pipe `|` syntax to apply formatters:
 
 ```dart
 // Template
 {
-  "nomeFormatado": "{{data.nome | titleCase}}",
+  "formattedName": "{{data.nome | titleCase}}",
   "username": "{{data.nome | lowerCase | snakeCase}}",
-  "resumo": "{{data.descricao | truncate:50}}"
+  "summary": "{{data.descricao | truncate:50}}"
 }
 
 // Dados
 {
   "data": {
     "nome": "joão silva santos",
-    "descricao": "Esta é uma descrição muito longa que precisa ser truncada..."
+    "descricao": "This is a very long description that needs to be truncated..."
   }
 }
 
 // Resultado
 {
-  "nomeFormatado": "João Silva Santos",
+  "formattedName": "João Silva Santos",
   "username": "joão_silva_santos", 
-  "resumo": "Esta é uma descrição muito longa que precisa ser tr..."
+  "summary": "This is a very long description that needs to be tr..."
 }
 ```
 
-#### 📋 Formatadores Disponíveis
+#### 📋 Available Formatters
 
 ##### 🔤 Formatadores de Caso
 
-| Formatador | Entrada | Saída | Descrição |
+| Formatter | Input | Output | Description |
 |------------|---------|-------|-----------|
-| `pascalCase` | "joão silva" | "JoãoSilva" | PascalCase para classes |
-| `camelCase` | "joão silva" | "joãoSilva" | camelCase para variáveis |
-| `snakeCase` | "João Silva" | "joão_silva" | snake_case para APIs |
-| `kebabCase` | "João Silva" | "joão-silva" | kebab-case para URLs |
-| `titleCase` | "joão silva" | "João Silva" | Title Case para exibição |
+| `pascalCase` | "joão silva" | "JoãoSilva" | PascalCase for classes |
+| `camelCase` | "joão silva" | "joãoSilva" | camelCase for variables |
+| `snakeCase` | "João Silva" | "joão_silva" | snake_case for APIs |
+| `kebabCase` | "João Silva" | "joão-silva" | kebab-case for URLs |
+| `titleCase` | "joão silva" | "João Silva" | Title Case for display |
 | `sentenceCase` | "JOÃO SILVA" | "João silva" | Sentence case |
-| `upperCase` | "joão" | "JOÃO" | MAIÚSCULAS |
-| `lowerCase` | "JOÃO" | "joão" | minúsculas |
-| `replace(name:data.name)` | "Bem vindo {name}" | "Bem vindo João Silva" | Substituição de valores |
+| `upperCase` | "joão" | "JOÃO" | UPPERCASE |
+| `lowerCase` | "JOÃO" | "joão" | lowercase |
+| `replace(name:data.name)` | "Bem vindo {name}" | "Bem vindo João Silva" | Value substitution |
 
-##### ✏️ Formatadores de Texto
+##### ✏️ Text Formatters
 
-| Formatador | Entrada | Saída | Descrição |
+| Formatter | Input | Output | Description |
 |------------|---------|-------|-----------|
-| `capitalize` | "joão silva" | "João silva" | Primeira letra maiúscula |
-| `truncate` | "texto longo..." | "texto lon..." | Trunca em 100 chars (padrão) |
-| `truncate:30` | "texto longo..." | "texto lon..." | Trunca em 30 chars |
+| `capitalize` | "joão silva" | "João silva" | Capitalizes the first letter |
+| `truncate` | "long text..." | "long tex..." | Truncates to 100 chars (default) |
+| `truncate:30` | "long text..." | "long tex..." | Truncates to 30 chars |
 
-### 4. 🔗 Encadeamento de Formatadores
+### 4. 🔗 Chaining Formatters
 
-Combine múltiplos formatadores em sequência:
+Combine multiple formatters in sequence:
 
 ```dart
 // Template
 {
-  "processado": "{{data.texto | lowerCase | titleCase | truncate:20}}"
+  "processed": "{{data.texto | lowerCase | titleCase | truncate:20}}"
 }
 
 // Dados  
@@ -181,23 +181,23 @@ Combine múltiplos formatadores em sequência:
 
 // Resultado
 {
-  "processado": "Este É Um Texto Muit..."
+  "processed": "Este É Um Texto Muit..."
 }
 ```
 
-### 5. 📦 Preservação de Tipos
+### 5. 📦 Type Preservation
 
 ```dart
 // Template
 {
-  "produtosOriginais": "{{data.produtos}}",           // Mantém array
-  "produtosFormatados": "{{data.produtos | upperCase}}", // Vira string
-  "idadeOriginal": "{{data.idade}}",                  // Mantém número
-  "idadeFormatada": "{{data.idade | upperCase}}"      // Vira string
+  "originalProducts": "{{data.produtos}}",           // Keeps array
+  "formattedProducts": "{{data.produtos | upperCase}}", // Becomes string
+  "originalAge": "{{data.idade}}",                  // Keeps number
+  "formattedAge": "{{data.idade | upperCase}}"      // Becomes string
 }
 ```
 
-### 6. 🏗️ Exemplo Completo
+### 6. 🏗️ Complete Example
 
 ```dart
 import 'dart:convert';
@@ -224,7 +224,7 @@ void main() {
   }
   ''';
 
-  final dados = {
+  final data = {
     "data": {
       "usuario": {
         "nomeCompleto": "maria silva santos",
@@ -243,14 +243,14 @@ void main() {
     }
   };
 
-  final processador = JsonCraft();
-  final resultado = processador.process(template, dados);
+  final processor = JsonCraft();
+  final result = processor.process(template, data);
   
-  print(JsonEncoder.withIndent('  ').convert(json.decode(resultado)));
+  print(JsonEncoder.withIndent('  ').convert(json.decode(result)));
 }
 ```
 
-**Resultado:**
+**Result:**
 ```json
 {
   "usuario": {
@@ -258,14 +258,14 @@ void main() {
     "username": "maria_silva_santos",
     "permissoes": "READ WRITE DELETE"
   },
-  "carrinho": {
+  "cart": {
     "total": 1,
-    "primeiroProduto": "Notebook Gamer",
-    "resumo": "Notebook para jogos com alta performance e qualid..."
+    "firstProduct": "Notebook Gamer",
+    "summary": "Notebook para jogos com alta performance e qualid..."
   },
-  "configuracoes": {
-    "tema": "Dark",
-    "idioma": "PT-BR"
+  "settings": {
+    "theme": "Dark",
+    "language": "PT-BR"
   }
 }
 ```
@@ -306,7 +306,7 @@ Use `{{! comment }}` to add comments to your templates that will be ignored duri
 
 - **Single-line comments**: `{{! This is a comment }}`
 - **Multi-line comments**: Support comments that span multiple lines
-- **Documentation**: Perfect for documenting complex templates
+- **Documentation**: Great for documenting complex templates
 - **Clean output**: Comments are completely removed before processing
 
 ### 8. 🔁 Dot Notation (Implicit Iterator)

@@ -1,4 +1,4 @@
-## Next
+## 0.2.0
 * Add JsonCraftFunction to enhance flexibility for creating custom functions.
 
 ## 0.1.0
