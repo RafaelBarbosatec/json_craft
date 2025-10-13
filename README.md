@@ -5,37 +5,43 @@
 ![GitHub stars](https://img.shields.io/github/stars/RafaelBarbosatec/json_craft?style=flat)
 [![pub points](https://img.shields.io/pub/points/json_craft?logo=dart)](https://pub.dev/packages/json_craft/score)
 
-Um sistema poderoso e flexível para geração dinâmica de JSON usando templates com interpolação de variáveis, condicionais e formatadores.
+A powerful and flexible system for dynamic JSON generation using templates with variable interpolation, conditionals, and formatters.
 
-## ✨ Características
+## ✨ Features
 
-- 🔗 **Interpolação de Variáveis**: Acesse dados aninhados com `{{data.campo}}`
-- 🎛️ **Condicionais Inteligentes**: Inclua/exclua propriedades baseado em condições
-- 🔄 **Formatadores Encadeáveis**: Transforme dados com sintaxe de pipe
-- 📦 **Preservação de Tipos**: Mantém tipos originais (arrays, objetos, números)
-- 🚫 **Negação**: Suporte a condições invertidas com `!`
-- 🛡️ **Tratamento Robusto**: Lida graciosamente com valores nulos e inexistentes
-- 🏗️ **Arquitetura Extensível**: Sistema de formatadores baseado em plugins
+- 🔗 **Variable Interpolation**: Access nested data with `{{data.field}}`
+- 🎛️ **Smart Conditionals**: Include/exclude properties based on conditions
+- 🔄 **Chainable Formatters**: Transform data with pipe syntax
+- 📦 **Type Preservation**: Maintains original types (arrays, objects, numbers)
+- 🚫 **Negation**: Support for inverted conditions with `!`
+- 🛡️ **Robust Handling**: Gracefully handles null and non-existent values
+- 🏗️ **Extensible Architecture**: Plugin-based formatter system
+- 💬 **Comments**: Document templates with `{{! comment }}` syntax
+- 🔁 **Dot Notation**: Implicit iterator for primitive arrays with `{{.}}`
+- 🔄 **Context Change**: Simplify templates with `{{#with:path}}`
+- 🗺️ **Map Function**: Iterate over arrays to generate dynamic objects
+- 📝 **Template Inclusion**: Modularize templates with `{{#include:id}}`
+- 🎯 **Dynamic Partials**: Data-driven template selection with `{{#include:*path}}`
 
-## 🚀 Instalação
+## 🚀 Installation
 
 ```dart
 import 'lib/json_craft.dart';
 
 final processor = JsonCraft();
-final resultado = processor.process(jsonTemplate, data);
+final result = processor.process(jsonTemplate, data);
 ```
 
-## 📖 Guia de Uso
+## 📖 Usage Guide
 
-### 1. 🔗 Interpolação Básica
+### 1. 🔗 Basic Interpolation
 
 ```dart
 // Template
 {
-  "nome": "{{data.usuario.nome}}",
+  "name": "{{data.usuario.nome}}",
   "email": "{{data.usuario.email}}",
-  "idade": "{{data.usuario.idade}}"
+  "age": "{{data.usuario.idade}}"
 }
 
 // Dados
@@ -51,23 +57,23 @@ final resultado = processor.process(jsonTemplate, data);
 
 // Resultado
 {
-  "nome": "João Silva",
+  "name": "João Silva",
   "email": "joao@email.com", 
-  "idade": 30
+  "age": 30
 }
 ```
 
-### 2. 🎛️ Condicionais
+### 2. 🎛️ Conditionals
 
-Use `{{#if:campo}}` para incluir propriedades condicionalmente:
+Use `{{#if:field}}` to conditionally include properties:
 
 ```dart
 // Template
 {
-  "nome": "{{data.nome}}",
-  "{{#if:data.isVip}}beneficiosVip": ["Frete grátis", "Desconto especial"],
-  "{{#if:data.temProdutos}}produtos": "{{data.produtos}}",
-  "{{#if:!data.carrinhoVazio}}itensCarrinho": "{{data.carrinho}}"
+  "name": "{{data.nome}}",
+  "{{#if:data.isVip}}vipBenefits": ["Free shipping", "Special discount"],
+  "{{#if:data.temProdutos}}products": "{{data.produtos}}",
+  "{{#if:!data.carrinhoVazio}}cartItems": "{{data.carrinho}}"
 }
 
 // Dados
@@ -83,87 +89,87 @@ Use `{{#if:campo}}` para incluir propriedades condicionalmente:
 
 // Resultado
 {
-  "nome": "Ana",
-  "beneficiosVip": ["Frete grátis", "Desconto especial"],
-  "itensCarrinho": ["item1", "item2"]
+  "name": "Ana",
+  "vipBenefits": ["Free shipping", "Special discount"],
+  "cartItems": ["item1", "item2"]
 }
 ```
 
-#### 🔍 Avaliação de Condicionais
+#### 🔍 Conditional Evaluation
 
-| Valor | `{{#if:campo}}` | `{{#if:!campo}}` |
+| Value | `{{#if:field}}` | `{{#if:!field}}` |
 |-------|-----------------|------------------|
-| `true` | ✅ Inclui | ❌ Exclui |
-| `false` | ❌ Exclui | ✅ Inclui |
-| `""` (string vazia) | ❌ Exclui | ✅ Inclui |
-| `[]` (array vazio) | ❌ Exclui | ✅ Inclui |
-| `{}` (objeto vazio) | ❌ Exclui | ✅ Inclui |
-| `null` | ❌ Exclui | ✅ Inclui |
-| `0` | ❌ Exclui | ✅ Inclui |
-| `"texto"` | ✅ Inclui | ❌ Exclui |
-| `[1,2,3]` | ✅ Inclui | ❌ Exclui |
-| `{"key":"value"}` | ✅ Inclui | ❌ Exclui |
+| `true` | ✅ Included | ❌ Excluded |
+| `false` | ❌ Excluded | ✅ Included |
+| `""` (empty string) | ❌ Excluded | ✅ Included |
+| `[]` (empty array) | ❌ Excluded | ✅ Included |
+| `{}` (empty object) | ❌ Excluded | ✅ Included |
+| `null` | ❌ Excluded | ✅ Included |
+| `0` | ❌ Excluded | ✅ Included |
+| `"text"` | ✅ Included | ❌ Excluded |
+| `[1,2,3]` | ✅ Included | ❌ Excluded |
+| `{"key":"value"}` | ✅ Included | ❌ Excluded |
 
-### 3. 🔄 Formatadores
+### 3. 🔄 Formatters
 
-Use a sintaxe de pipe `|` para aplicar formatadores:
+Use the pipe `|` syntax to apply formatters:
 
 ```dart
 // Template
 {
-  "nomeFormatado": "{{data.nome | titleCase}}",
+  "formattedName": "{{data.nome | titleCase}}",
   "username": "{{data.nome | lowerCase | snakeCase}}",
-  "resumo": "{{data.descricao | truncate:50}}"
+  "summary": "{{data.descricao | truncate:50}}"
 }
 
 // Dados
 {
   "data": {
     "nome": "joão silva santos",
-    "descricao": "Esta é uma descrição muito longa que precisa ser truncada..."
+    "descricao": "This is a very long description that needs to be truncated..."
   }
 }
 
 // Resultado
 {
-  "nomeFormatado": "João Silva Santos",
+  "formattedName": "João Silva Santos",
   "username": "joão_silva_santos", 
-  "resumo": "Esta é uma descrição muito longa que precisa ser tr..."
+  "summary": "This is a very long description that needs to be tr..."
 }
 ```
 
-#### 📋 Formatadores Disponíveis
+#### 📋 Available Formatters
 
 ##### 🔤 Formatadores de Caso
 
-| Formatador | Entrada | Saída | Descrição |
+| Formatter | Input | Output | Description |
 |------------|---------|-------|-----------|
-| `pascalCase` | "joão silva" | "JoãoSilva" | PascalCase para classes |
-| `camelCase` | "joão silva" | "joãoSilva" | camelCase para variáveis |
-| `snakeCase` | "João Silva" | "joão_silva" | snake_case para APIs |
-| `kebabCase` | "João Silva" | "joão-silva" | kebab-case para URLs |
-| `titleCase` | "joão silva" | "João Silva" | Title Case para exibição |
+| `pascalCase` | "joão silva" | "JoãoSilva" | PascalCase for classes |
+| `camelCase` | "joão silva" | "joãoSilva" | camelCase for variables |
+| `snakeCase` | "João Silva" | "joão_silva" | snake_case for APIs |
+| `kebabCase` | "João Silva" | "joão-silva" | kebab-case for URLs |
+| `titleCase` | "joão silva" | "João Silva" | Title Case for display |
 | `sentenceCase` | "JOÃO SILVA" | "João silva" | Sentence case |
-| `upperCase` | "joão" | "JOÃO" | MAIÚSCULAS |
-| `lowerCase` | "JOÃO" | "joão" | minúsculas |
-| `replace(name:data.name)` | "Bem vindo {name}" | "Bem vindo João Silva" | Substituição de valores |
+| `upperCase` | "joão" | "JOÃO" | UPPERCASE |
+| `lowerCase` | "JOÃO" | "joão" | lowercase |
+| `replace(name:data.name)` | "Bem vindo {name}" | "Bem vindo João Silva" | Value substitution |
 
-##### ✏️ Formatadores de Texto
+##### ✏️ Text Formatters
 
-| Formatador | Entrada | Saída | Descrição |
+| Formatter | Input | Output | Description |
 |------------|---------|-------|-----------|
-| `capitalize` | "joão silva" | "João silva" | Primeira letra maiúscula |
-| `truncate` | "texto longo..." | "texto lon..." | Trunca em 100 chars (padrão) |
-| `truncate:30` | "texto longo..." | "texto lon..." | Trunca em 30 chars |
+| `capitalize` | "joão silva" | "João silva" | Capitalizes the first letter |
+| `truncate` | "long text..." | "long tex..." | Truncates to 100 chars (default) |
+| `truncate:30` | "long text..." | "long tex..." | Truncates to 30 chars |
 
-### 4. 🔗 Encadeamento de Formatadores
+### 4. 🔗 Chaining Formatters
 
-Combine múltiplos formatadores em sequência:
+Combine multiple formatters in sequence:
 
 ```dart
 // Template
 {
-  "processado": "{{data.texto | lowerCase | titleCase | truncate:20}}"
+  "processed": "{{data.texto | lowerCase | titleCase | truncate:20}}"
 }
 
 // Dados  
@@ -175,23 +181,23 @@ Combine múltiplos formatadores em sequência:
 
 // Resultado
 {
-  "processado": "Este É Um Texto Muit..."
+  "processed": "Este É Um Texto Muit..."
 }
 ```
 
-### 5. 📦 Preservação de Tipos
+### 5. 📦 Type Preservation
 
 ```dart
 // Template
 {
-  "produtosOriginais": "{{data.produtos}}",           // Mantém array
-  "produtosFormatados": "{{data.produtos | upperCase}}", // Vira string
-  "idadeOriginal": "{{data.idade}}",                  // Mantém número
-  "idadeFormatada": "{{data.idade | upperCase}}"      // Vira string
+  "originalProducts": "{{data.produtos}}",           // Keeps array
+  "formattedProducts": "{{data.produtos | upperCase}}", // Becomes string
+  "originalAge": "{{data.idade}}",                  // Keeps number
+  "formattedAge": "{{data.idade | upperCase}}"      // Becomes string
 }
 ```
 
-### 6. 🏗️ Exemplo Completo
+### 6. 🏗️ Complete Example
 
 ```dart
 import 'dart:convert';
@@ -218,7 +224,7 @@ void main() {
   }
   ''';
 
-  final dados = {
+  final data = {
     "data": {
       "usuario": {
         "nomeCompleto": "maria silva santos",
@@ -237,14 +243,14 @@ void main() {
     }
   };
 
-  final processador = JsonCraft();
-  final resultado = processador.process(template, dados);
+  final processor = JsonCraft();
+  final result = processor.process(template, data);
   
-  print(JsonEncoder.withIndent('  ').convert(json.decode(resultado)));
+  print(JsonEncoder.withIndent('  ').convert(json.decode(result)));
 }
 ```
 
-**Resultado:**
+**Result:**
 ```json
 {
   "usuario": {
@@ -252,19 +258,168 @@ void main() {
     "username": "maria_silva_santos",
     "permissoes": "READ WRITE DELETE"
   },
-  "carrinho": {
+  "cart": {
     "total": 1,
-    "primeiroProduto": "Notebook Gamer",
-    "resumo": "Notebook para jogos com alta performance e qualid..."
+    "firstProduct": "Notebook Gamer",
+    "summary": "Notebook para jogos com alta performance e qualid..."
   },
-  "configuracoes": {
-    "tema": "Dark",
-    "idioma": "PT-BR"
+  "settings": {
+    "theme": "Dark",
+    "language": "PT-BR"
   }
 }
 ```
 
-### 7. 🔄 Map
+### 7. 💬 Comments
+
+Use `{{! comment }}` to add comments to your templates that will be ignored during processing:
+
+```dart
+// Template
+{
+  {{! This is a single-line comment }}
+  "name": "{{data.name}}",
+  {{!
+    This is a multi-line comment
+    that can span multiple lines
+    and will be completely removed
+  }}
+  "email": "{{data.email}}"
+}
+
+// Data
+{
+  "data": {
+    "name": "John Doe",
+    "email": "john@example.com"
+  }
+}
+
+// Result
+{
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+```
+
+#### 📝 Comment Features
+
+- **Single-line comments**: `{{! This is a comment }}`
+- **Multi-line comments**: Support comments that span multiple lines
+- **Documentation**: Great for documenting complex templates
+- **Clean output**: Comments are completely removed before processing
+
+### 8. 🔁 Dot Notation (Implicit Iterator)
+
+Use `{{.}}` to access the current item when iterating over arrays of primitives:
+
+```dart
+// Template
+{
+  "{{#map:data.tags}}tagList": {
+    "value": "{{.}}",
+    "uppercase": "{{. | upperCase}}"
+  }
+}
+
+// Data
+{
+  "data": {
+    "tags": ["javascript", "dart", "flutter"]
+  }
+}
+
+// Result
+{
+  "tagList": [
+    {"value": "javascript", "uppercase": "JAVASCRIPT"},
+    {"value": "dart", "uppercase": "DART"},
+    {"value": "flutter", "uppercase": "FLUTTER"}
+  ]
+}
+```
+
+#### 🔍 Dot Notation Features
+
+- **Primitive arrays**: Works with arrays of strings, numbers, or booleans
+- **Formatters**: Apply formatters to primitive values: `{{. | upperCase}}`
+- **Backward compatible**: Existing `{{item.property}}` syntax still works for objects
+- **Type preservation**: When used as complete placeholder, preserves number types
+
+### 9. 🔄 Context Change (With)
+
+Use `{{#with:path}}` to change the context and avoid repeating long paths:
+
+```dart
+// Template WITHOUT context change (repetitive)
+{
+  "userName": "{{data.user.name}}",
+  "userEmail": "{{data.user.email}}",
+  "userAge": "{{data.user.age}}",
+  "userCity": "{{data.user.address.city}}"
+}
+
+// Template WITH context change (clean)
+{
+  "{{#with:data.user}}profile": {
+    "userName": "{{name}}",
+    "userEmail": "{{email}}",
+    "userAge": "{{age}}",
+    "userCity": "{{address.city}}"
+  }
+}
+
+// Data
+{
+  "data": {
+    "user": {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "age": 30,
+      "address": {
+        "city": "São Paulo"
+      }
+    }
+  }
+}
+
+// Result
+{
+  "profile": {
+    "userName": "John Doe",
+    "userEmail": "john@example.com",
+    "userAge": 30,
+    "userCity": "São Paulo"
+  }
+}
+```
+
+#### 🎯 Context Change Features
+
+- **Cleaner templates**: Avoid repeating long paths
+- **Nested contexts**: Support for `{{#with}}` inside another `{{#with}}`
+- **Parent context access**: Fields not found in new context fall back to parent
+- **Works with formatters**: Apply formatters within the new context
+- **Combines with other functions**: Use with `{{#if}}`, `{{#map}}`, etc.
+
+#### Example: Nested Context
+
+```dart
+{
+  "{{#with:data.company}}companyInfo": {
+    "name": "{{name}}",
+    "{{#with:employees.manager}}manager": {
+      "name": "{{name}}",
+      "{{#with:contact}}contact": {
+        "email": "{{email}}",
+        "phone": "{{phone}}"
+      }
+    }
+  }
+}
+```
+
+### 10. 🔄 Map
 
 Use `{{#map:campo}}` para iterar sobre arrays e gerar objetos dinâmicos:
 
@@ -305,7 +460,86 @@ Use `{{#map:campo}}` para iterar sobre arrays e gerar objetos dinâmicos:
 
 O `map` permite criar objetos dinâmicos baseados em arrays, com suporte a interpolação e formatadores.
 
-### 8. 📦 Inclusão de Templates
+### 8. 🎯 Dynamic Partials
+
+Dynamic Partials allow you to choose which template to include **based on data**, making your templates truly data-driven!
+
+#### Static Include (nome fixo)
+```dart
+{
+  "content": "{{#include:userTemplate}}"  // Always uses "userTemplate"
+}
+```
+
+#### Dynamic Include (nome vem dos dados)
+```dart
+// Template
+{
+  "card": "{{#include:*data.cardType}}"  // * indicates dynamic
+}
+
+// Data - Scenario 1
+{
+  "data": {
+    "cardType": "userTemplate",
+    "name": "John"
+  }
+}
+
+// Data - Scenario 2
+{
+  "data": {
+    "cardType": "adminTemplate",
+    "name": "Alice"
+  }
+}
+```
+
+#### 🔥 Real-World Use Cases
+
+**1. Multi-tenancy / White Label**
+```dart
+// Single template for all clients
+{
+  "branding": "{{#include:*client.themeTemplate}}"
+}
+
+// Each client can have different template
+// Client A: themeTemplate = "clientA_theme"
+// Client B: themeTemplate = "clientB_theme"
+```
+
+**2. Dynamic Components**
+```dart
+{
+  "{{#map:data.widgets}}widgets": {
+    "widget": "{{#include:*item.type}}"
+  }
+}
+
+// Each widget uses its own template based on type
+// buttonWidget, textWidget, imageWidget, etc.
+```
+
+**3. Dynamic Forms**
+```dart
+{
+  "{{#map:data.fields}}formFields": {
+    "field": "{{#include:*item.fieldType}}"
+  }
+}
+
+// Different field types: inputField, selectField, checkboxField
+```
+
+#### 🎯 Benefits
+
+- ✅ **Data-driven**: Template selection based on data
+- ✅ **Zero conditionals**: No need for multiple `{{#if}}` statements
+- ✅ **Scalable**: Add new templates without changing main template
+- ✅ **Flexible**: Works with `{{#map}}`, `{{#with}}`, and all other features
+
+### 9. 📦 Template Inclusion (Static)
 
 Agora é possível incluir templates adicionais no processamento usando o placeholder especial `{{#include:id}}`. Isso permite modularizar e reutilizar partes do JSON.
 
@@ -447,22 +681,27 @@ O sistema trata graciosamente:
 - **Valores nulos**: Retorna string vazia
 - **Condicionais inválidas**: Retorna `false`
 
-## 🧪 Testes
+## 🧪 Tests
 
-Execute os testes para verificar todas as funcionalidades:
+Run tests to verify all functionalities:
 
 ```bash
 flutter test
 ```
 
-**Cobertura atual**: 25 testes passando ✅
-- Interpolação básica e aninhada
-- Condicionais e negação
-- Todos os formatadores
-- Encadeamento de formatadores
-- Preservação de tipos
-- Casos edge e tratamento de erros
-- Arquitetura de formatadores extensível
+**Current coverage**: 55 tests passing ✅
+- Basic and nested interpolation
+- Conditionals and negation
+- All formatters
+- Formatter chaining
+- Type preservation
+- Edge cases and error handling
+- Extensible formatter architecture
+- Dot notation with primitive arrays
+- Comments (single-line and multi-line)
+- Context change with nested contexts
+- Map function with arrays
+- Template inclusion (static and dynamic)
 
 ## 📝 Licença
 

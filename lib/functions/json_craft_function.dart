@@ -1,5 +1,6 @@
 import 'src/if_function.dart';
 import 'src/map_function.dart';
+import 'src/with_function.dart';
 
 typedef ReplaceRecursiveFunction = dynamic Function(
   dynamic data, {
@@ -24,6 +25,7 @@ abstract class JsonCraftFunction {
     dynamic value,
     GetValueFromPathFunction getValue,
     ReplaceRecursiveFunction replaceRecursive,
+    Map<String, String>? templates,
   );
 }
 
@@ -31,6 +33,7 @@ abstract class JsonCraftFunctionDetafult {
   static List<JsonCraftFunction> defaultFunctions = [
     JsonCraftIfFunction(),
     JsonCraftMapFunction(),
+    JsonCraftWithFunction(),
   ];
 }
 
@@ -44,6 +47,7 @@ class JsonCraftEmptyFunction extends JsonCraftFunction {
     dynamic value,
     GetValueFromPathFunction getValue,
     ReplaceRecursiveFunction replaceRecursive,
+    Map<String, String>? templates,
   ) {
     return {key: replaceRecursive(value)};
   }

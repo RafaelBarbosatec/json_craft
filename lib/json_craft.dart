@@ -26,21 +26,31 @@ class JsonCraft {
 
   String process(String jsonString, Map<String, dynamic> data,
       {Map<String, String>? templates}) {
-    // Converte a string JSON para um objeto Dart (Map ou List)
-    final decodedJson = json.decode(jsonString);
+    // Remove comments before processing
+    final jsonWithoutComments = _removeComments(jsonString);
 
-    // Recursivamente substitui os placeholders
+    // Convert JSON string to Dart object (Map or List)
+    final decodedJson = json.decode(jsonWithoutComments);
+
+    // Recursively replace placeholders
     final processedJson = _replacePlaceholdersRecursive(
       decodedJson,
       data,
       templates,
     );
 
-    // Converte o objeto Dart de volta para uma string JSON
+    // Convert Dart object back to JSON string
     return json.encode(processedJson);
   }
 
-  // Função recursiva para percorrer o objeto JSON e substituir os placeholders
+  // Remove comments from JSON template string
+  String _removeComments(String jsonString) {
+    // Regex to match {{! ... }} comments (including multiline)
+    final commentRegex = RegExp(r'\{\{!.*?\}\}', dotAll: true);
+    return jsonString.replaceAll(commentRegex, '');
+  }
+
+  // Recursive function to traverse JSON object and replace placeholders
   dynamic _replacePlaceholdersRecursive(
     dynamic data,
     Map<String, dynamic> context,
@@ -78,12 +88,13 @@ class JsonCraft {
               },
               templates,
             ),
+            templates,
           ),
         );
       });
       return newMap;
     } else if (data is List) {
-      // Se for uma lista, itera sobre os elementos
+      // If it's a list, iterate over elements
       return data
           .map(
             (item) => _replacePlaceholdersRecursive(
@@ -94,12 +105,21 @@ class JsonCraft {
           )
           .toList();
     }
-    // Se não for string, map ou list, retorna o próprio dado
+    // If it's not string, map or list, return the data itself
     return data;
   }
 
-  // Obtém um valor seguindo um caminho (path) no contexto
+  // Get value following a path in the context
   dynamic _getValueFromPath(String path, Map<String, dynamic> context) {
+    // Handle implicit iterator (dot notation)
+    if (path == '.') {
+      // Return the current item if it exists in context
+      if (context.containsKey('item')) {
+        return context['item'];
+      }
+      return '';
+    }
+
     final parts = path.split('.');
     dynamic currentValue = context;
 
@@ -123,13 +143,13 @@ class JsonCraft {
     return currentValue ?? '';
   }
 
-  // Verifica se a string é um placeholder completo
+  // Check if the string is a complete placeholder
   bool _isCompletePlaceholder(String text) {
     final regex = RegExp(r'^\{\{([^}]+)\}\}$');
     return regex.hasMatch(text);
   }
 
-  // Obtém o valor do placeholder preservando o tipo original
+  // Get placeholder value preserving the original type
   dynamic _getPlaceholderValue(String text, Map<String, dynamic> context) {
     final regex = RegExp(r'^\{\{([^}]+)\}\}$');
     final match = regex.firstMatch(text);
@@ -140,7 +160,7 @@ class JsonCraft {
 
     final placeholder = match.group(1)!;
 
-    // Verifica se há formatadores (pipe |)
+    // Check if there are formatters (pipe |)
     final parts = placeholder.split('|');
     final fieldPath = parts[0].trim();
     final formatters = parts.skip(1).map((f) => f.trim()).toList();
@@ -151,7 +171,7 @@ class JsonCraft {
       throw Exception('Placeholder not found: $text');
     }
 
-    // Se há formatadores, aplica eles (resultado será sempre string)
+    // If there are formatters, apply them (result will always be string)
     if (formatters.isNotEmpty) {
       String result = currentValue?.toString() ?? '';
       for (final formatter in formatters) {
@@ -160,31 +180,31 @@ class JsonCraft {
       return result;
     }
 
-    // Se não há formatadores, retorna o valor original preservando o tipo
+    // If there are no formatters, return original value preserving type
     return currentValue;
   }
 
-// Função para substituir placeholders em uma única string
+  // Function to replace placeholders in a single string
   String _replaceStringPlaceholders(String text, Map<String, dynamic> context) {
-    // Expressão regular para encontrar "{{alguma.chave | formatador}}"
-    // Agora também captura formatadores opcionais
+    // Regular expression to find "{{some.key | formatter}}"
+    // Also captures optional formatters
     final regex = RegExp(r'\{\{([^}]+)\}\}');
 
     return text.replaceAllMapped(regex, (match) {
-      final placeholder = match.group(1); // Ex: "data.name | pascalCase"
+      final placeholder = match.group(1); // e.g.: "data.name | pascalCase"
       if (placeholder == null) {
         throw Exception('Placeholder not found: ${match.group(0)!}');
       }
 
-      // Verifica se há formatadores (pipe |)
+      // Check if there are formatters (pipe |)
       final parts = placeholder.split('|');
-      final fieldPath = parts[0].trim(); // Ex: "data.name"
+      final fieldPath = parts[0].trim(); // e.g.: "data.name"
       final formatters = parts
           .skip(1)
           .map((f) => f.trim())
-          .toList(); // Ex: ["pascalCase", "upperCase"]
+          .toList(); // e.g.: ["pascalCase", "upperCase"]
 
-      // Obter o valor do campo
+      // Get field value
       final currentValue = _getValueFromPath(fieldPath, context)?.toString();
 
       if (currentValue == null) {
@@ -193,7 +213,7 @@ class JsonCraft {
 
       String result = currentValue;
 
-      // Aplicar formatadores em sequência
+      // Apply formatters in sequence
       for (final formatter in formatters) {
         result = _applyFormatter(result, formatter, context);
       }
@@ -202,10 +222,10 @@ class JsonCraft {
     });
   }
 
-  // Aplica um formatador específico ao valor
+  // Apply a specific formatter to the value
   String _applyFormatter(
       String value, String formatter, Map<String, dynamic> context) {
-    // Verifica se o formatador tem parâmetros (ex: "truncate(50)")
+    // Check if formatter has parameters (e.g.: "truncate(50)")
 
     String? parameter;
     final formatterParts = formatter.split('(');
@@ -214,17 +234,17 @@ class JsonCraft {
       parameter = formatterParts[1].replaceAll(')', '');
     }
 
-    // Procura o formatador na lista de formatadores disponíveis
+    // Search for formatter in available formatters list
     final targetFormatter = _formatters.firstWhere(
       (f) => f.name == formatterName,
       orElse: () => JsonCraftFormatter(
         name: 'identity',
         formatter: (value, param, getValue) =>
-            value, // Retorna valor original se não encontrar
+            value, // Return original value if not found
       ),
     );
 
-    // Aplica o formatador encontrado
+    // Apply the found formatter
     return targetFormatter.format(
       value,
       parameter,
@@ -232,27 +252,44 @@ class JsonCraft {
     );
   }
 
-  // Verifica se a chave tem um include ({{#include:id}})
+  // Check if the key has an include ({{#include:id}} or {{#include:*path}})
   bool _isIncludePlaceholder(String text) {
-    final regex = RegExp(r'^\{\{#include:([^}]+)\}\}$');
+    final regex = RegExp(r'^\{\{#include:(\*)?([^}]+)\}\}$');
     return regex.hasMatch(text);
   }
 
-  // Obtém e processa um template incluído
+  // Get and process an included template
   dynamic _getIncludedTemplate(String text, Map<String, String>? templates,
       Map<String, dynamic> context) {
     if (templates == null) {
       throw Exception('Templates not provided for inclusion: $text');
     }
 
-    final regex = RegExp(r'^\{\{#include:([^}]+)\}\}$');
+    final regex = RegExp(r'^\{\{#include:(\*)?([^}]+)\}\}$');
     final match = regex.firstMatch(text);
 
     if (match == null) {
       throw Exception('Invalid include syntax: $text');
     }
 
-    final templateId = match.group(1)!;
+    final isDynamic = match.group(1) == '*';
+    final templateIdOrPath = match.group(2)!;
+
+    String templateId;
+
+    if (isDynamic) {
+      // Dynamic partial: resolve the template name from context
+      final resolvedValue = _getValueFromPath(templateIdOrPath, context);
+
+      if (resolvedValue == null || resolvedValue.toString().isEmpty) {
+        throw Exception('Dynamic partial path resolved to null or empty: $templateIdOrPath');
+      }
+
+      templateId = resolvedValue.toString();
+    } else {
+      // Static partial: use the ID directly
+      templateId = templateIdOrPath;
+    }
 
     if (!templates.containsKey(templateId)) {
       throw Exception('Template not found: $templateId');
