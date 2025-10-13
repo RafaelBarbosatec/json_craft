@@ -10,6 +10,7 @@ class JsonCraftMapFunction extends JsonCraftFunction {
     value,
     GetValueFromPathFunction getValue,
     ReplaceRecursiveFunction replaceRecursive,
+    Map<String, String>? templates,
   ) {
     final cleanKey = clearKey(key);
 

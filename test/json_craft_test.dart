@@ -835,6 +835,715 @@ void main() {
     );
   });
 
+  group('JsonCraft - Dot Notation (Implicit Iterator)', () {
+    test('should iterate over primitive array with dot notation', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "{{#map:data.tags}}tagList": {
+          "value": "{{.}}"
+        }
+      }
+      ''';
+
+      final testData = {
+        "data": {
+          "tags": ["JavaScript", "Dart", "Flutter"]
+        }
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['tagList'], isA<List>());
+      expect(processedMap['tagList'].length, equals(3));
+      expect(processedMap['tagList'][0], equals({'value': 'JavaScript'}));
+      expect(processedMap['tagList'][1], equals({'value': 'Dart'}));
+      expect(processedMap['tagList'][2], equals({'value': 'Flutter'}));
+    });
+
+    test('should apply formatters to dot notation', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "{{#map:data.tags}}tagList": {
+          "original": "{{.}}",
+          "uppercase": "{{. | upperCase}}",
+          "titleCase": "{{. | titleCase}}"
+        }
+      }
+      ''';
+
+      final testData = {
+        "data": {
+          "tags": ["javascript", "dart"]
+        }
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['tagList'][0]['original'], equals('javascript'));
+      expect(processedMap['tagList'][0]['uppercase'], equals('JAVASCRIPT'));
+      expect(processedMap['tagList'][0]['titleCase'], equals('Javascript'));
+    });
+
+    test('should work with numbers in primitive array', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "{{#map:data.numbers}}numberList": {
+          "value": "{{.}}"
+        }
+      }
+      ''';
+
+      final testData = {
+        "data": {
+          "numbers": [1, 2, 3, 4, 5]
+        }
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['numberList'].length, equals(5));
+      // When using {{.}} with complete placeholder, type is preserved
+      expect(processedMap['numberList'][0]['value'], equals(1));
+      expect(processedMap['numberList'][2]['value'], equals(3));
+    });
+
+    test('should still work with object arrays using item notation', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "{{#map:data.users}}userList": {
+          "name": "{{item.name}}",
+          "age": "{{item.age}}"
+        }
+      }
+      ''';
+
+      final testData = {
+        "data": {
+          "users": [
+            {"name": "Alice", "age": 30},
+            {"name": "Bob", "age": 25}
+          ]
+        }
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['userList'].length, equals(2));
+      expect(processedMap['userList'][0]['name'], equals('Alice'));
+      expect(processedMap['userList'][1]['age'], equals(25));
+    });
+
+    test('should support dot notation in mixed context with other placeholders', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "title": "{{translate.tags}}",
+        "{{#map:data.tags}}tagList": {
+          "tag": "{{.}}",
+          "prefix": "{{translate.tagPrefix}}"
+        }
+      }
+      ''';
+
+      final testData = {
+        "translate": {
+          "tags": "Available Tags",
+          "tagPrefix": "Tag:"
+        },
+        "data": {
+          "tags": ["React", "Vue"]
+        }
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['title'], equals('Available Tags'));
+      expect(processedMap['tagList'][0]['tag'], equals('React'));
+      expect(processedMap['tagList'][0]['prefix'], equals('Tag:'));
+      expect(processedMap['tagList'][1]['tag'], equals('Vue'));
+    });
+  });
+
+  group('JsonCraft - Comments', () {
+    test('should remove single-line comments from template', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "name": "{{data.name}}",
+        {{! This is a comment that should be removed }}
+        "age": "{{data.age}}"
+      }
+      ''';
+
+      final testData = {
+        "data": {"name": "John", "age": 30}
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['name'], equals('John'));
+      expect(processedMap['age'], equals(30));
+    });
+
+    test('should remove multi-line comments from template', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "title": "{{data.title}}",
+        {{!
+          This is a multi-line comment
+          that spans multiple lines
+          and should be completely removed
+        }}
+        "description": "{{data.description}}"
+      }
+      ''';
+
+      final testData = {
+        "data": {"title": "Hello", "description": "World"}
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['title'], equals('Hello'));
+      expect(processedMap['description'], equals('World'));
+    });
+
+    test('should remove multiple comments from template', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        {{! First comment }}
+        "field1": "{{data.field1}}",
+        {{! Second comment }}
+        "field2": "{{data.field2}}",
+        {{! Third comment }}
+        "field3": "{{data.field3}}"
+      }
+      ''';
+
+      final testData = {
+        "data": {"field1": "A", "field2": "B", "field3": "C"}
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['field1'], equals('A'));
+      expect(processedMap['field2'], equals('B'));
+      expect(processedMap['field3'], equals('C'));
+    });
+
+    test('should handle comments mixed with placeholders', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "user": {
+          {{! User name field }}
+          "name": "{{data.user.name}}",
+          {{! User email - this is important }}
+          "email": "{{data.user.email}}"
+        },
+        {{! Product section }}
+        "products": "{{data.products}}"
+      }
+      ''';
+
+      final testData = {
+        "data": {
+          "user": {"name": "Alice", "email": "alice@test.com"},
+          "products": ["Item1", "Item2"]
+        }
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['user']['name'], equals('Alice'));
+      expect(processedMap['user']['email'], equals('alice@test.com'));
+      expect(processedMap['products'], isA<List>());
+    });
+
+    test('should not confuse comments with regular placeholders', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        {{! This is a comment }}
+        "data": "{{data.value}}",
+        "exclamation": "{{data.exclamation}}"
+      }
+      ''';
+
+      final testData = {
+        "data": {"value": "test", "exclamation": "Hello!"}
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['data'], equals('test'));
+      expect(processedMap['exclamation'], equals('Hello!'));
+    });
+  });
+
+  group('JsonCraft - Context Change (With)', () {
+    test('should change context with {{#with}} for simple object', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "{{#with:data.user}}profile": {
+          "name": "{{name}}",
+          "email": "{{email}}",
+          "age": "{{age}}"
+        }
+      }
+      ''';
+
+      final testData = {
+        "data": {
+          "user": {
+            "name": "John Doe",
+            "email": "john@example.com",
+            "age": 30
+          }
+        }
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['profile']['name'], equals('John Doe'));
+      expect(processedMap['profile']['email'], equals('john@example.com'));
+      expect(processedMap['profile']['age'], equals(30));
+    });
+
+    test('should apply formatters within context change', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "{{#with:data.user}}formattedProfile": {
+          "upperName": "{{name | upperCase}}",
+          "titleName": "{{name | titleCase}}",
+          "truncatedBio": "{{bio | truncate:20}}"
+        }
+      }
+      ''';
+
+      final testData = {
+        "data": {
+          "user": {
+            "name": "john doe",
+            "bio": "This is a very long biography that needs to be truncated"
+          }
+        }
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['formattedProfile']['upperName'], equals('JOHN DOE'));
+      expect(processedMap['formattedProfile']['titleName'], equals('John Doe'));
+      expect(processedMap['formattedProfile']['truncatedBio'],
+          startsWith('This is a very long')); // Truncate adds ...
+    });
+
+    test('should support nested context change', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "{{#with:data.user}}userInfo": {
+          "name": "{{name}}",
+          "{{#with:address}}location": {
+            "city": "{{city}}",
+            "country": "{{country}}"
+          }
+        }
+      }
+      ''';
+
+      final testData = {
+        "data": {
+          "user": {
+            "name": "Alice",
+            "address": {"city": "São Paulo", "country": "Brazil"}
+          }
+        }
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['userInfo']['name'], equals('Alice'));
+      expect(processedMap['userInfo']['location']['city'], equals('São Paulo'));
+      expect(
+          processedMap['userInfo']['location']['country'], equals('Brazil'));
+    });
+
+    test('should access parent context when field not found in with context',
+        () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "appName": "{{app.name}}",
+        "{{#with:data.user}}userInfo": {
+          "userName": "{{name}}",
+          "appName": "{{app.name}}"
+        }
+      }
+      ''';
+
+      final testData = {
+        "app": {"name": "MyApp"},
+        "data": {
+          "user": {"name": "Bob"}
+        }
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['appName'], equals('MyApp'));
+      expect(processedMap['userInfo']['userName'], equals('Bob'));
+      expect(processedMap['userInfo']['appName'],
+          equals('MyApp')); // Falls back to parent context
+    });
+
+    test('should work with multiple separate with blocks', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "{{#with:data.customer}}customerData": {
+          "name": "{{name}}",
+          "email": "{{email}}"
+        },
+        "{{#with:data.manager}}managerData": {
+          "name": "{{name}}",
+          "email": "{{email}}"
+        }
+      }
+      ''';
+
+      final testData = {
+        "data": {
+          "customer": {"name": "Customer One", "email": "customer@test.com"},
+          "manager": {"name": "Manager One", "email": "manager@test.com"}
+        }
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['customerData']['name'], equals('Customer One'));
+      expect(
+          processedMap['customerData']['email'], equals('customer@test.com'));
+      expect(processedMap['managerData']['name'], equals('Manager One'));
+      expect(processedMap['managerData']['email'], equals('manager@test.com'));
+    });
+
+    test('should combine with and if conditionals', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "{{#with:data.user}}userProfile": {
+          "name": "{{name}}",
+          "{{#if:isPremium}}premiumBadge": "VIP Member",
+          "{{#if:!isGuest}}accountType": "Registered"
+        }
+      }
+      ''';
+
+      final testData = {
+        "data": {
+          "user": {"name": "Premium User", "isPremium": true, "isGuest": false}
+        }
+      };
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, testData);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['userProfile']['name'], equals('Premium User'));
+      expect(processedMap['userProfile']['premiumBadge'], equals('VIP Member'));
+      expect(processedMap['userProfile']['accountType'], equals('Registered'));
+    });
+
+    test('should throw exception if with path not found', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "{{#with:data.nonExistent}}profile": {
+          "name": "{{name}}"
+        }
+      }
+      ''';
+
+      final testData = {
+        "data": {"user": {"name": "John"}}
+      };
+
+      // Act & Assert
+      expect(
+        () => JsonCraft().process(jsonTemplate, testData),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('should throw exception if with context is not a Map', () {
+      // Arrange
+      final jsonTemplate = '''
+      {
+        "{{#with:data.tags}}profile": {
+          "value": "{{name}}"
+        }
+      }
+      ''';
+
+      final testData = {
+        "data": {
+          "tags": ["tag1", "tag2"]
+        }
+      };
+
+      // Act & Assert
+      expect(
+        () => JsonCraft().process(jsonTemplate, testData),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
+
+  group('JsonCraft - Dynamic Partials', () {
+    test('should resolve dynamic partial from data', () {
+      // Arrange
+      final mainTemplate = json.encode({
+        'title': '{{title}}',
+        'content': '{{#include:*data.templateType}}'
+      });
+
+      final userTemplate = json.encode({
+        'userInfo': 'User: {{data.name}}'
+      });
+
+      final adminTemplate = json.encode({
+        'adminInfo': 'Admin: {{data.name}}'
+      });
+
+      final templates = {
+        'userTemplate': userTemplate,
+        'adminTemplate': adminTemplate,
+      };
+
+      // Act - User scenario
+      final userData = {
+        'title': 'User Page',
+        'data': {'templateType': 'userTemplate', 'name': 'John'}
+      };
+      final userResult = JsonCraft().process(mainTemplate, userData, templates: templates);
+      final userMap = json.decode(userResult) as Map<String, dynamic>;
+
+      // Act - Admin scenario
+      final adminData = {
+        'title': 'Admin Page',
+        'data': {'templateType': 'adminTemplate', 'name': 'Alice'}
+      };
+      final adminResult = JsonCraft().process(mainTemplate, adminData, templates: templates);
+      final adminMap = json.decode(adminResult) as Map<String, dynamic>;
+
+      // Assert
+      expect(userMap['title'], equals('User Page'));
+      expect(userMap['content']['userInfo'], equals('User: John'));
+
+      expect(adminMap['title'], equals('Admin Page'));
+      expect(adminMap['content']['adminInfo'], equals('Admin: Alice'));
+    });
+
+    test('should work with dynamic partials in map iteration', () {
+      // Arrange
+      final mainTemplate = json.encode({
+        '{{#map:data.widgets}}widgetList': '{{#include:*item.type}}'
+      });
+
+      final buttonWidget = json.encode({
+        'button': '{{item.label}}'
+      });
+
+      final textWidget = json.encode({
+        'text': '{{item.content}}'
+      });
+
+      final templates = {
+        'buttonWidget': buttonWidget,
+        'textWidget': textWidget,
+      };
+
+      final data = {
+        'data': {
+          'widgets': [
+            {'type': 'buttonWidget', 'label': 'Click Me'},
+            {'type': 'textWidget', 'content': 'Hello World'},
+            {'type': 'buttonWidget', 'label': 'Submit'},
+          ]
+        }
+      };
+
+      // Act
+      final result = JsonCraft().process(mainTemplate, data, templates: templates);
+      final resultMap = json.decode(result) as Map<String, dynamic>;
+
+      // Assert
+      expect(resultMap['widgetList'], isA<List>());
+      expect(resultMap['widgetList'].length, equals(3));
+      expect(resultMap['widgetList'][0]['button'], equals('Click Me'));
+      expect(resultMap['widgetList'][1]['text'], equals('Hello World'));
+      expect(resultMap['widgetList'][2]['button'], equals('Submit'));
+    });
+
+    test('should support nested paths for dynamic partial resolution', () {
+      // Arrange
+      final mainTemplate = json.encode({
+        'content': '{{#include:*config.theme.templateName}}'
+      });
+
+      final darkTheme = json.encode({
+        'theme': 'dark',
+        'background': '#000'
+      });
+
+      final templates = {'darkTheme': darkTheme};
+
+      final data = {
+        'config': {
+          'theme': {
+            'templateName': 'darkTheme'
+          }
+        }
+      };
+
+      // Act
+      final result = JsonCraft().process(mainTemplate, data, templates: templates);
+      final resultMap = json.decode(result) as Map<String, dynamic>;
+
+      // Assert
+      expect(resultMap['content']['theme'], equals('dark'));
+      expect(resultMap['content']['background'], equals('#000'));
+    });
+
+    test('should throw exception when dynamic partial path not found', () {
+      // Arrange
+      final mainTemplate = json.encode({
+        'content': '{{#include:*data.nonExistent}}'
+      });
+
+      final templates = {'someTemplate': '{}'};
+      final data = {'data': {}};
+
+      // Act & Assert
+      expect(
+        () => JsonCraft().process(mainTemplate, data, templates: templates),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('should throw exception when resolved template does not exist', () {
+      // Arrange
+      final mainTemplate = json.encode({
+        'content': '{{#include:*data.templateType}}'
+      });
+
+      final templates = {'existingTemplate': '{}'};
+      final data = {
+        'data': {'templateType': 'nonExistentTemplate'}
+      };
+
+      // Act & Assert
+      expect(
+        () => JsonCraft().process(mainTemplate, data, templates: templates),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('should work with dynamic partials and with context change', () {
+      // Arrange
+      final mainTemplate = json.encode({
+        '{{#with:data.user}}userCard': '{{#include:*cardType}}'
+      });
+
+      final premiumCard = json.encode({
+        'name': '{{name}}',
+        'badge': 'Premium Member'
+      });
+
+      final basicCard = json.encode({
+        'name': '{{name}}',
+        'badge': 'Basic Member'
+      });
+
+      final templates = {
+        'premiumCard': premiumCard,
+        'basicCard': basicCard,
+      };
+
+      final data = {
+        'data': {
+          'user': {
+            'name': 'John Doe',
+            'cardType': 'premiumCard'
+          }
+        }
+      };
+
+      // Act
+      final result = JsonCraft().process(mainTemplate, data, templates: templates);
+      final resultMap = json.decode(result) as Map<String, dynamic>;
+
+      // Assert
+      expect(resultMap['userCard']['name'], equals('John Doe'));
+      expect(resultMap['userCard']['badge'], equals('Premium Member'));
+    });
+  });
+
   group('JsonCraft process with template inclusion', () {
     test('should include and process templates correctly', () {
       final jsonCraft = JsonCraft();

@@ -10,6 +10,7 @@ class JsonCraftIfFunction extends JsonCraftFunction {
     dynamic value,
     GetValueFromPathFunction getValue,
     ReplaceRecursiveFunction replaceRecursive,
+    Map<String, String>? templates,
   ) {
     if (_evaluateConditional(key, getValue)) {
       final cleanKey = clearKey(key);

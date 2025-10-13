@@ -7,15 +7,21 @@
 
 Um sistema poderoso e flexível para geração dinâmica de JSON usando templates com interpolação de variáveis, condicionais e formatadores.
 
-## ✨ Características
+## ✨ Features
 
-- 🔗 **Interpolação de Variáveis**: Acesse dados aninhados com `{{data.campo}}`
-- 🎛️ **Condicionais Inteligentes**: Inclua/exclua propriedades baseado em condições
-- 🔄 **Formatadores Encadeáveis**: Transforme dados com sintaxe de pipe
-- 📦 **Preservação de Tipos**: Mantém tipos originais (arrays, objetos, números)
-- 🚫 **Negação**: Suporte a condições invertidas com `!`
-- 🛡️ **Tratamento Robusto**: Lida graciosamente com valores nulos e inexistentes
-- 🏗️ **Arquitetura Extensível**: Sistema de formatadores baseado em plugins
+- 🔗 **Variable Interpolation**: Access nested data with `{{data.field}}`
+- 🎛️ **Smart Conditionals**: Include/exclude properties based on conditions
+- 🔄 **Chainable Formatters**: Transform data with pipe syntax
+- 📦 **Type Preservation**: Maintains original types (arrays, objects, numbers)
+- 🚫 **Negation**: Support for inverted conditions with `!`
+- 🛡️ **Robust Handling**: Gracefully handles null and non-existent values
+- 🏗️ **Extensible Architecture**: Plugin-based formatter system
+- 💬 **Comments**: Document templates with `{{! comment }}` syntax
+- 🔁 **Dot Notation**: Implicit iterator for primitive arrays with `{{.}}`
+- 🔄 **Context Change**: Simplify templates with `{{#with:path}}`
+- 🗺️ **Map Function**: Iterate over arrays to generate dynamic objects
+- 📝 **Template Inclusion**: Modularize templates with `{{#include:id}}`
+- 🎯 **Dynamic Partials**: Data-driven template selection with `{{#include:*path}}`
 
 ## 🚀 Instalação
 
@@ -264,7 +270,156 @@ void main() {
 }
 ```
 
-### 7. 🔄 Map
+### 7. 💬 Comments
+
+Use `{{! comment }}` to add comments to your templates that will be ignored during processing:
+
+```dart
+// Template
+{
+  {{! This is a single-line comment }}
+  "name": "{{data.name}}",
+  {{!
+    This is a multi-line comment
+    that can span multiple lines
+    and will be completely removed
+  }}
+  "email": "{{data.email}}"
+}
+
+// Data
+{
+  "data": {
+    "name": "John Doe",
+    "email": "john@example.com"
+  }
+}
+
+// Result
+{
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+```
+
+#### 📝 Comment Features
+
+- **Single-line comments**: `{{! This is a comment }}`
+- **Multi-line comments**: Support comments that span multiple lines
+- **Documentation**: Perfect for documenting complex templates
+- **Clean output**: Comments are completely removed before processing
+
+### 8. 🔁 Dot Notation (Implicit Iterator)
+
+Use `{{.}}` to access the current item when iterating over arrays of primitives:
+
+```dart
+// Template
+{
+  "{{#map:data.tags}}tagList": {
+    "value": "{{.}}",
+    "uppercase": "{{. | upperCase}}"
+  }
+}
+
+// Data
+{
+  "data": {
+    "tags": ["javascript", "dart", "flutter"]
+  }
+}
+
+// Result
+{
+  "tagList": [
+    {"value": "javascript", "uppercase": "JAVASCRIPT"},
+    {"value": "dart", "uppercase": "DART"},
+    {"value": "flutter", "uppercase": "FLUTTER"}
+  ]
+}
+```
+
+#### 🔍 Dot Notation Features
+
+- **Primitive arrays**: Works with arrays of strings, numbers, or booleans
+- **Formatters**: Apply formatters to primitive values: `{{. | upperCase}}`
+- **Backward compatible**: Existing `{{item.property}}` syntax still works for objects
+- **Type preservation**: When used as complete placeholder, preserves number types
+
+### 9. 🔄 Context Change (With)
+
+Use `{{#with:path}}` to change the context and avoid repeating long paths:
+
+```dart
+// Template WITHOUT context change (repetitive)
+{
+  "userName": "{{data.user.name}}",
+  "userEmail": "{{data.user.email}}",
+  "userAge": "{{data.user.age}}",
+  "userCity": "{{data.user.address.city}}"
+}
+
+// Template WITH context change (clean)
+{
+  "{{#with:data.user}}profile": {
+    "userName": "{{name}}",
+    "userEmail": "{{email}}",
+    "userAge": "{{age}}",
+    "userCity": "{{address.city}}"
+  }
+}
+
+// Data
+{
+  "data": {
+    "user": {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "age": 30,
+      "address": {
+        "city": "São Paulo"
+      }
+    }
+  }
+}
+
+// Result
+{
+  "profile": {
+    "userName": "John Doe",
+    "userEmail": "john@example.com",
+    "userAge": 30,
+    "userCity": "São Paulo"
+  }
+}
+```
+
+#### 🎯 Context Change Features
+
+- **Cleaner templates**: Avoid repeating long paths
+- **Nested contexts**: Support for `{{#with}}` inside another `{{#with}}`
+- **Parent context access**: Fields not found in new context fall back to parent
+- **Works with formatters**: Apply formatters within the new context
+- **Combines with other functions**: Use with `{{#if}}`, `{{#map}}`, etc.
+
+#### Example: Nested Context
+
+```dart
+{
+  "{{#with:data.company}}companyInfo": {
+    "name": "{{name}}",
+    "{{#with:employees.manager}}manager": {
+      "name": "{{name}}",
+      "{{#with:contact}}contact": {
+        "email": "{{email}}",
+        "phone": "{{phone}}"
+      }
+    }
+  }
+}
+```
+
+### 10. 🔄 Map
 
 Use `{{#map:campo}}` para iterar sobre arrays e gerar objetos dinâmicos:
 
@@ -305,7 +460,86 @@ Use `{{#map:campo}}` para iterar sobre arrays e gerar objetos dinâmicos:
 
 O `map` permite criar objetos dinâmicos baseados em arrays, com suporte a interpolação e formatadores.
 
-### 8. 📦 Inclusão de Templates
+### 8. 🎯 Dynamic Partials
+
+Dynamic Partials allow you to choose which template to include **based on data**, making your templates truly data-driven!
+
+#### Static Include (nome fixo)
+```dart
+{
+  "content": "{{#include:userTemplate}}"  // Always uses "userTemplate"
+}
+```
+
+#### Dynamic Include (nome vem dos dados)
+```dart
+// Template
+{
+  "card": "{{#include:*data.cardType}}"  // * indicates dynamic
+}
+
+// Data - Scenario 1
+{
+  "data": {
+    "cardType": "userTemplate",
+    "name": "John"
+  }
+}
+
+// Data - Scenario 2
+{
+  "data": {
+    "cardType": "adminTemplate",
+    "name": "Alice"
+  }
+}
+```
+
+#### 🔥 Real-World Use Cases
+
+**1. Multi-tenancy / White Label**
+```dart
+// Single template for all clients
+{
+  "branding": "{{#include:*client.themeTemplate}}"
+}
+
+// Each client can have different template
+// Client A: themeTemplate = "clientA_theme"
+// Client B: themeTemplate = "clientB_theme"
+```
+
+**2. Dynamic Components**
+```dart
+{
+  "{{#map:data.widgets}}widgets": {
+    "widget": "{{#include:*item.type}}"
+  }
+}
+
+// Each widget uses its own template based on type
+// buttonWidget, textWidget, imageWidget, etc.
+```
+
+**3. Dynamic Forms**
+```dart
+{
+  "{{#map:data.fields}}formFields": {
+    "field": "{{#include:*item.fieldType}}"
+  }
+}
+
+// Different field types: inputField, selectField, checkboxField
+```
+
+#### 🎯 Benefits
+
+- ✅ **Data-driven**: Template selection based on data
+- ✅ **Zero conditionals**: No need for multiple `{{#if}}` statements
+- ✅ **Scalable**: Add new templates without changing main template
+- ✅ **Flexible**: Works with `{{#map}}`, `{{#with}}`, and all other features
+
+### 9. 📦 Template Inclusion (Static)
 
 Agora é possível incluir templates adicionais no processamento usando o placeholder especial `{{#include:id}}`. Isso permite modularizar e reutilizar partes do JSON.
 
@@ -447,22 +681,27 @@ O sistema trata graciosamente:
 - **Valores nulos**: Retorna string vazia
 - **Condicionais inválidas**: Retorna `false`
 
-## 🧪 Testes
+## 🧪 Tests
 
-Execute os testes para verificar todas as funcionalidades:
+Run tests to verify all functionalities:
 
 ```bash
 flutter test
 ```
 
-**Cobertura atual**: 25 testes passando ✅
-- Interpolação básica e aninhada
-- Condicionais e negação
-- Todos os formatadores
-- Encadeamento de formatadores
-- Preservação de tipos
-- Casos edge e tratamento de erros
-- Arquitetura de formatadores extensível
+**Current coverage**: 55 tests passing ✅
+- Basic and nested interpolation
+- Conditionals and negation
+- All formatters
+- Formatter chaining
+- Type preservation
+- Edge cases and error handling
+- Extensible formatter architecture
+- Dot notation with primitive arrays
+- Comments (single-line and multi-line)
+- Context change with nested contexts
+- Map function with arrays
+- Template inclusion (static and dynamic)
 
 ## 📝 Licença
 
