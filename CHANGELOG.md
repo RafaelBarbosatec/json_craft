@@ -1,5 +1,8 @@
 ## 0.2.0
 * Add JsonCraftFunction to enhance flexibility for creating custom functions.
+* Adds 🎯 **Dynamic Partials**
+* Adds 🔄 **Context Change**
+* Adds 🔁 **Dot Notation**
 
 ## 0.1.0
 * Adds map
