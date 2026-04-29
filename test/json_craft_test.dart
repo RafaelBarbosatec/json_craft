@@ -150,6 +150,31 @@ void main() {
       expect(products.length, equals(2));
       expect(products[0]['name'], equals('Laptop'));
     });
+
+     test('deve processar data dentro de data', () {
+      // Arrange
+      final dataWithNull = {
+        "data": {
+          "user": {"name": '{{translate.tratamento}} Rafael'}
+        },
+        "translate": {
+          "tratamento": "Sr."
+        }
+      };
+
+      final jsonTemplate = '''
+      {
+        "title": "Welcome, {{data.user.name}}!"
+      }
+      ''';
+
+      // Act
+      final processedJson = JsonCraft().process(jsonTemplate, dataWithNull);
+      final processedMap = json.decode(processedJson) as Map<String, dynamic>;
+
+      // Assert
+      expect(processedMap['title'], equals('Welcome, Sr. Rafael!'));
+    });
   });
 
   group('JsonCraft - Condicionais', () {

@@ -109,8 +109,12 @@ class JsonCraft {
     return data;
   }
 
+  // Regular expression to find placeholders
+  static final _placeholderRegex = RegExp(r'\{\{([^}]+)\}\}');
+
   // Get value following a path in the context
-  dynamic _getValueFromPath(String path, Map<String, dynamic> context) {
+  dynamic _getValueFromPath(String path, Map<String, dynamic> context,
+      {int depth = 0, int maxDepth = 2}) {
     // Handle implicit iterator (dot notation)
     if (path == '.') {
       // Return the current item if it exists in context
@@ -140,6 +144,14 @@ class JsonCraft {
       }
     }
 
+    // Process placeholders in string values (recursive, with depth limit)
+    if (currentValue is String &&
+        depth < maxDepth &&
+        _placeholderRegex.hasMatch(currentValue)) {
+      currentValue =
+          _replaceStringPlaceholders(currentValue, context, depth: depth + 1);
+    }
+
     return currentValue ?? '';
   }
 
@@ -150,7 +162,8 @@ class JsonCraft {
   }
 
   // Get placeholder value preserving the original type
-  dynamic _getPlaceholderValue(String text, Map<String, dynamic> context) {
+  dynamic _getPlaceholderValue(String text, Map<String, dynamic> context,
+      {int depth = 0}) {
     final regex = RegExp(r'^\{\{([^}]+)\}\}$');
     final match = regex.firstMatch(text);
 
@@ -165,7 +178,7 @@ class JsonCraft {
     final fieldPath = parts[0].trim();
     final formatters = parts.skip(1).map((f) => f.trim()).toList();
 
-    dynamic currentValue = _getValueFromPath(fieldPath, context);
+    dynamic currentValue = _getValueFromPath(fieldPath, context, depth: depth);
 
     if (currentValue == null) {
       throw Exception('Placeholder not found: $text');
@@ -185,7 +198,8 @@ class JsonCraft {
   }
 
   // Function to replace placeholders in a single string
-  String _replaceStringPlaceholders(String text, Map<String, dynamic> context) {
+  String _replaceStringPlaceholders(String text, Map<String, dynamic> context,
+      {int depth = 0}) {
     // Regular expression to find "{{some.key | formatter}}"
     // Also captures optional formatters
     final regex = RegExp(r'\{\{([^}]+)\}\}');
@@ -204,8 +218,9 @@ class JsonCraft {
           .map((f) => f.trim())
           .toList(); // e.g.: ["pascalCase", "upperCase"]
 
-      // Get field value
-      final currentValue = _getValueFromPath(fieldPath, context)?.toString();
+      // Get field value (with recursive placeholder processing)
+      final currentValue =
+          _getValueFromPath(fieldPath, context, depth: depth)?.toString();
 
       if (currentValue == null) {
         throw Exception('Placeholder not found: ${match.group(0)!}');

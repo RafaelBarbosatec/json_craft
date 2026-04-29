@@ -1,3 +1,9 @@
+## 0.2.2
+* Add recursive placeholder processing in resolved values (nested placeholders)
+
+## 0.2.1
+* Version bump
+
 ## 0.2.0
 * Add JsonCraftFunction to enhance flexibility for creating custom functions.
 * Adds 🎯 **Dynamic Partials**
